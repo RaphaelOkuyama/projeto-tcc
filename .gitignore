@@ -1,6 +1,7 @@
 node_modules/
 .env
 __pycache__/
+apps/frontend/.pnpm-store/
 
 # ML data – never commit datasets
 apps/ml/data/
