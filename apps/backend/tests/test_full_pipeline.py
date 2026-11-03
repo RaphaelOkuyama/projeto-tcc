@@ -336,7 +336,7 @@ async def test_full_pipeline_critical_prediction() -> None:
     enqueue_mock.assert_called_once()
     (enqueued_payload,) = enqueue_mock.call_args.args
     json.dumps(enqueued_payload)  # RNF-50 §6/§9.2 — 100% serializável
-    assert enqueued_payload["probability"] == 0.93
+    assert enqueued_payload["risk_score"] == 0.93
     assert enqueued_payload["telegram_enabled"] is True
     # RNF-50 — a notificação NUNCA é enviada de forma síncrona: o adapter
     # nunca é chamado diretamente pelo processo que decidiu o alerta.

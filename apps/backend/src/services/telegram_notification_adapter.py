@@ -33,7 +33,7 @@ class CriticalFailureNotification:
 
     equipment_id: str
     equipment_name: str
-    probability: float
+    risk_score: float
     timestamp: str
     dashboard_url: str
 
@@ -61,9 +61,9 @@ def build_critical_failure_message(notification: CriticalFailureNotification) ->
     return (
         "🚨 FALHA CRÍTICA DETECTADA\n\n"
         f"Equipamento: {notification.equipment_name}\n"
-        f"Probabilidade de falha: {notification.probability:.0%}\n"
+        f"Índice de risco: {notification.risk_score:.0%}\n"
         f"Detectado em: {format_local_timestamp(notification.timestamp)}\n\n"
-        "Uma falha crítica foi detectada pelo modelo preditivo.\n\n"
+        "Uma falha crítica foi detectada pelo modelo de detecção.\n\n"
         f"Acesse o Dashboard: {notification.dashboard_url}"
     )
 

@@ -32,7 +32,7 @@ log = structlog.get_logger(__name__)
 def build_critical_failure_email_text(
     *,
     equipment_name: str,
-    probability: float,
+    risk_score: float,
     timestamp: str,
     dashboard_url: str,
 ) -> str:
@@ -41,9 +41,9 @@ def build_critical_failure_email_text(
     return (
         "FALHA CRÍTICA DETECTADA\n\n"
         f"Equipamento: {equipment_name}\n"
-        f"Probabilidade de falha: {probability:.0%}\n"
+        f"Índice de risco: {risk_score:.0%}\n"
         f"Timestamp: {timestamp}\n\n"
-        "Uma falha crítica foi detectada pelo modelo preditivo.\n\n"
+        "Uma falha crítica foi detectada pelo modelo de detecção.\n\n"
         f"Acesse o Dashboard: {dashboard_url}"
     )
 
@@ -76,19 +76,19 @@ class EmailNotificationAdapter:
         *,
         to: str,
         equipment_name: str,
-        probability: float,
+        risk_score: float,
         timestamp: str,
         dashboard_url: str,
     ) -> None:
         text = build_critical_failure_email_text(
             equipment_name=equipment_name,
-            probability=probability,
+            risk_score=risk_score,
             timestamp=timestamp,
             dashboard_url=dashboard_url,
         )
         html = render_critical_failure_email_html(
             equipment_name=equipment_name,
-            probability=probability,
+            risk_score=risk_score,
             timestamp=timestamp,
             dashboard_url=dashboard_url,
         )

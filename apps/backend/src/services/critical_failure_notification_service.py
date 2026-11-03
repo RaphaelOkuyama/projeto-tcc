@@ -205,7 +205,12 @@ class CriticalFailureNotificationService:
         dispatch_kwargs: dict[str, Any] = {
             "equipment_id": equipment_id,
             "equipment_name": equipment_name,
-            "probability": probability,
+            # Canais mostram o mesmo índice do painel, não a probabilidade bruta.
+            "risk_score": (
+                probability
+                if decision_threshold is None
+                else risk_index(probability, decision_threshold)
+            ),
             "timestamp": timestamp,
             "dashboard_url": dashboard_url,
             "telegram_enabled": config.telegram_enabled,
@@ -245,7 +250,7 @@ class CriticalFailureNotificationService:
         *,
         equipment_id: str,
         equipment_name: str,
-        probability: float,
+        risk_score: float,
         timestamp: str,
         dashboard_url: str,
         telegram_enabled: bool,
@@ -272,7 +277,7 @@ class CriticalFailureNotificationService:
             notification = CriticalFailureNotification(
                 equipment_id=equipment_id,
                 equipment_name=equipment_name,
-                probability=probability,
+                risk_score=risk_score,
                 timestamp=timestamp,
                 dashboard_url=dashboard_url,
             )
@@ -298,7 +303,7 @@ class CriticalFailureNotificationService:
                 await self._email_adapter.send_critical_failure_email(
                     to=alert_email,
                     equipment_name=equipment_name,
-                    probability=probability,
+                    risk_score=risk_score,
                     timestamp=timestamp,
                     dashboard_url=dashboard_url,
                 )
@@ -337,7 +342,7 @@ class CriticalFailureNotificationService:
         log.info(
             "critical_failure_notification_sent",
             equipment_id=equipment_id,
-            probability=probability,
+            risk_score=risk_score,
             telegram_ok=telegram_ok,
             email_ok=email_ok,
         )

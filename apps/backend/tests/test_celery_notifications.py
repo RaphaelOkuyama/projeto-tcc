@@ -45,7 +45,7 @@ def _sample_payload(**overrides):
     payload = {
         "equipment_id": "eq-celery-1",
         "equipment_name": "Equip",
-        "probability": 0.92,
+        "risk_score": 0.92,
         "timestamp": "2026-09-09T12:00:00+00:00",
         "dashboard_url": "http://localhost/sensors/eq-celery-1",
         "telegram_enabled": True,
