@@ -15,7 +15,7 @@ callers) the original raw-probability rule (> setting) is kept.
 from __future__ import annotations
 
 from typing import cast
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
@@ -152,3 +152,29 @@ async def test_suggestion_follows_the_model_decision_when_threshold_known() -> N
 
     legacy = await svc.suggest(MaintenanceSuggestionRequest(failure_probability=0.41))
     assert legacy.triggered is False  # manual request: RF-22 > 0.7 unchanged
+
+
+async def test_channels_receive_the_risk_index_not_the_raw_probability() -> None:
+    """E-mail/Telegram mostram o mesmo número do painel: MLP com limiar 0,06 e
+    P = 0,06 notifica com índice 65%, nunca "6%"."""
+    enqueue = Mock()
+    rate_limiter = AsyncMock()
+    rate_limiter.try_acquire = AsyncMock(return_value=True)
+    service = CriticalFailureNotificationService(
+        adapter=AsyncMock(),
+        rate_limiter=rate_limiter,
+        dashboard_url="http://localhost",
+        enqueue_notification=enqueue,
+    )
+
+    await service.notify_if_critical(
+        equipment_id="eq-1",
+        equipment_name="Eq 1",
+        probability=0.06,
+        timestamp="t",
+        decision_threshold=0.06,
+    )
+
+    payload = enqueue.call_args.args[0]
+    assert payload["risk_score"] == pytest.approx(CRITICAL_RISK)
+    assert "probability" not in payload

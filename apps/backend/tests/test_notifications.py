@@ -61,7 +61,7 @@ def _notification(**overrides: Any) -> CriticalFailureNotification:
     kwargs: dict[str, Any] = dict(
         equipment_id="APU-Trem-042",
         equipment_name="Compressor de Ar Industrial",
-        probability=0.92,
+        risk_score=0.92,
         timestamp="2026-09-08T12:00:00+00:00",
         dashboard_url="http://localhost/sensors/APU-Trem-042",
     )
@@ -245,7 +245,7 @@ def test_message_contains_dashboard_url_and_key_fields() -> None:
     message = build_critical_failure_message(
         _notification(
             equipment_name="Bomba Centrífuga 01",
-            probability=0.92,
+            risk_score=0.92,
             dashboard_url="http://localhost/sensors/bomba-01",
         )
     )
@@ -583,7 +583,7 @@ async def test_dispatch_channels_skips_email_when_enabled_but_no_address_configu
     await service.dispatch_channels(
         equipment_id="eq-1",
         equipment_name="Eq 1",
-        probability=0.9,
+        risk_score=0.9,
         timestamp="t",
         dashboard_url="http://localhost/sensors/eq-1",
         telegram_enabled=False,
@@ -617,7 +617,7 @@ async def test_dispatch_channels_sends_email_when_enabled_with_address_and_adapt
     await service.dispatch_channels(
         equipment_id="eq-1",
         equipment_name="Eq 1",
-        probability=0.9,
+        risk_score=0.9,
         timestamp="t",
         dashboard_url="http://localhost/sensors/eq-1",
         telegram_enabled=False,

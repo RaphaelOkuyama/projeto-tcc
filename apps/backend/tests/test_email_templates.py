@@ -13,7 +13,7 @@ from src.services.email_templates import (
 def _critical(**overrides: object) -> str:
     kwargs: dict[str, object] = {
         "equipment_name": "APU-Trem-042",
-        "probability": 0.964999,
+        "risk_score": 0.964999,
         "timestamp": "2026-10-13T15:14:44.242000+00:00",
         "dashboard_url": "http://localhost/sensors/APU-Trem-042",
     }
@@ -50,16 +50,16 @@ def test_critical_email_rejects_non_http_links(url: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("probability", "label"),
+    ("risk_score", "label"),
     [(0.10, "NORMAL"), (0.45, "ALERTA"), (0.65, "CRÍTICO"), (0.99, "CRÍTICO")],
 )
-def test_risk_label_follows_dashboard_scale(probability: float, label: str) -> None:
-    assert label in _critical(probability=probability)
+def test_risk_label_follows_dashboard_scale(risk_score: float, label: str) -> None:
+    assert label in _critical(risk_score=risk_score)
 
 
-@pytest.mark.parametrize("probability", [0.0, 1.0, 1.7, -0.2])
-def test_probability_bar_handles_extremes(probability: float) -> None:
-    html = _critical(probability=probability)  # não deve lançar
+@pytest.mark.parametrize("risk_score", [0.0, 1.0, 1.7, -0.2])
+def test_risk_bar_handles_extremes(risk_score: float) -> None:
+    html = _critical(risk_score=risk_score)  # não deve lançar
 
     assert 'width="0%"' not in html  # largura nunca zero (some a barra)
     assert 'width="-' not in html

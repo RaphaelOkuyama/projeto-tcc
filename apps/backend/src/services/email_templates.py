@@ -11,7 +11,7 @@ Decisões de design
 * Layout 100 % em `<table>` com estilos inline — é o único subconjunto de
   HTML/CSS que Gmail, Outlook e Apple Mail renderizam de forma consistente.
 * Largura máxima de 600 px, fluida abaixo disso (mobile).
-* A barra de probabilidade é uma tabela de duas células (não SVG/CSS grid),
+* A barra do índice de risco é uma tabela de duas células (não SVG/CSS grid),
   porque Gmail remove SVG e ignora `width: calc()`.
 * Tema escuro via `prefers-color-scheme` (Apple Mail / Outlook.com / Gmail
   app); onde não houver suporte, o tema claro continua legível.
@@ -19,7 +19,8 @@ Decisões de design
   um nome de equipamento com markup não pode virar injeção no e-mail.
 
 Escala de risco: mesma do Dashboard (`lib/risk-thresholds.ts`) —
-NORMAL < 0,30 ≤ ALERTA < 0,65 ≤ CRÍTICO.
+NORMAL < 0,35 ≤ ALERTA < 0,65 ≤ CRÍTICO. O valor recebido é o ÍNDICE DE RISCO
+(relativo ao limiar do modelo, `src/core/risk.py`), nunca a probabilidade bruta.
 """
 
 from __future__ import annotations
@@ -35,7 +36,7 @@ _FONT = (
 )
 _MONO = "'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace"
 
-_ALERT_THRESHOLD = 0.30
+_ALERT_THRESHOLD = 0.35
 _CRITICAL_THRESHOLD = 0.65
 
 # Media query isolada (string simples, não f-string) para não escapar chaves.
@@ -64,15 +65,15 @@ class _Risk:
     message: str
 
 
-def _risk_for(probability: float) -> _Risk:
-    if probability >= _CRITICAL_THRESHOLD:
+def _risk_for(risk_score: float) -> _Risk:
+    if risk_score >= _CRITICAL_THRESHOLD:
         return _Risk(
             "CRÍTICO",
             "#dc2626",
             "#fee2e2",
             "Intervenção imediata recomendada.",
         )
-    if probability >= _ALERT_THRESHOLD:
+    if risk_score >= _ALERT_THRESHOLD:
         return _Risk(
             "ALERTA",
             "#d97706",
@@ -256,13 +257,13 @@ def _hero(*, risk: _Risk, chip: str, headline: str, subline: str) -> str:
 def render_critical_failure_email_html(
     *,
     equipment_name: str,
-    probability: float,
+    risk_score: float,
     timestamp: str,
     dashboard_url: str,
 ) -> str:
     """E-mail de falha crítica — hero vermelho, medidor, detalhes e CTA."""
-    risk = _risk_for(probability)
-    pct = max(0, min(100, round(probability * 100)))
+    risk = _risk_for(risk_score)
+    pct = max(0, min(100, round(risk_score * 100)))
     rest = 100 - pct
     equipment = escape(equipment_name)
     url = _safe_url(dashboard_url)
@@ -272,12 +273,12 @@ def render_critical_failure_email_html(
         chip="Falha crítica detectada",
         headline=f"{equipment} precisa de atenção agora",
         subline=(
-            "O modelo preditivo identificou um padrão compatível com falha "
-            "iminente neste equipamento."
+            "O modelo de detecção identificou um padrão compatível com falha "
+            "em andamento neste equipamento."
         ),
     )
 
-    # Barra de probabilidade: duas células com largura em %.
+    # Barra do índice de risco: duas células com largura em %.
     rest_cell = (
         f'<td width="{rest}%" bgcolor="#e2e8f0" style="font-size:0;'
         f'line-height:0;height:12px;border-radius:0 6px 6px 0;">&nbsp;</td>'
@@ -306,7 +307,7 @@ def render_critical_failure_email_html(
         <td class="b-line" style="padding:24px 26px 22px 26px;">
           <div class="t-muted" style="font-family:{_FONT};font-size:11px;
                font-weight:700;letter-spacing:1.5px;color:#64748b;
-               text-transform:uppercase;">Probabilidade de falha</div>
+               text-transform:uppercase;">Índice de risco</div>
           <table role="presentation" width="100%" cellspacing="0"
                  cellpadding="0" border="0">
             <tr>
@@ -333,7 +334,7 @@ def render_critical_failure_email_html(
                   font-size:11px;color:#94a3b8;">0%</td>
               <td class="t-muted" align="center" style="padding-top:8px;
                   font-family:{_FONT};font-size:11px;color:#94a3b8;">
-                alerta 30%</td>
+                alerta 35%</td>
               <td class="t-muted" align="center" style="padding-top:8px;
                   font-family:{_FONT};font-size:11px;color:#94a3b8;">
                 crítico 65%</td>
@@ -351,7 +352,7 @@ def render_critical_failure_email_html(
       {_detail_row("Equipamento", f'<span style="font-family:{_MONO};">{equipment}</span>')}
       {_detail_row("Nível de risco", f'<span style="color:{risk.color};">{risk.label}</span> &mdash; {escape(risk.message)}')}
       {_detail_row("Detectado em", escape(format_local_timestamp(timestamp)))}
-      {_detail_row("Origem", "Modelo preditivo &middot; MetroPT-3", last=True)}
+      {_detail_row("Origem", "Modelo de detecção &middot; MetroPT-3", last=True)}
     </table>
 
     <!-- CTA -->
@@ -387,7 +388,7 @@ def render_critical_failure_email_html(
     return _shell(
         title="PredictIQ — Falha crítica detectada",
         preheader=(
-            f"{equipment_name}: probabilidade de falha de {pct}% — "
+            f"{equipment_name}: índice de risco de {pct}% — "
             "intervenção imediata recomendada."
         ),
         hero_html=hero,
@@ -426,7 +427,7 @@ def render_test_email_html(*, dashboard_url: str = "") -> str:
         <div class="t-muted" style="font-family:{_FONT};font-size:13px;
              line-height:20px;color:#64748b;padding-top:6px;">
           A chave do provedor, o remetente e o endereço de destino estão
-          corretos. Quando uma probabilidade de falha ultrapassar o limite
+          corretos. Quando o índice de risco atingir o nível
           configurado, você receberá um e-mail como este &mdash; com o
           equipamento, o nível de risco e um atalho para o painel.
         </div>

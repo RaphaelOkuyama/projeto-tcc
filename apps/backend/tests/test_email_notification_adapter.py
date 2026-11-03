@@ -52,7 +52,7 @@ def _adapter(**overrides: Any) -> EmailNotificationAdapter:
 def test_email_text_contains_all_required_fields() -> None:
     text = build_critical_failure_email_text(
         equipment_name="Compressor A",
-        probability=0.923,
+        risk_score=0.923,
         timestamp="2026-09-18T12:00:00+00:00",
         dashboard_url="http://localhost/sensors/A",
     )
@@ -65,10 +65,10 @@ def test_email_text_contains_all_required_fields() -> None:
     assert "<" not in text and ">" not in text
 
 
-def test_email_text_probability_rounds_to_nearest_percent() -> None:
+def test_email_text_risk_rounds_to_nearest_percent() -> None:
     text = build_critical_failure_email_text(
         equipment_name="X",
-        probability=0.995,
+        risk_score=0.995,
         timestamp="t",
         dashboard_url="u",
     )
@@ -90,7 +90,7 @@ async def test_send_critical_failure_email_success(monkeypatch) -> None:
     await adapter.send_critical_failure_email(
         to="ops@empresa.com",
         equipment_name="Compressor A",
-        probability=0.9,
+        risk_score=0.9,
         timestamp="2026-09-18T12:00:00+00:00",
         dashboard_url="http://localhost/sensors/A",
     )
@@ -207,7 +207,7 @@ async def test_critical_email_payload_includes_html_and_text_fallback(
     await _adapter().send_critical_failure_email(
         to="ops@empresa.com",
         equipment_name="Compressor A",
-        probability=0.9,
+        risk_score=0.9,
         timestamp="2026-09-18T12:00:00+00:00",
         dashboard_url="http://localhost/sensors/A",
     )
