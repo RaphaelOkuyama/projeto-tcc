@@ -1,11 +1,39 @@
-# PredictIQ — Plataforma de Manutenção Preditiva Industrial
+# PredictIQ — Detecção de Falhas em Compressores de Ar Metroferroviários
 
-> **TCC · Indústria 4.0 · v3.0** — Sistema full-stack para detecção de falhas em tempo real no compressor MetroPT-3, com streaming de dados reais (1 Hz), pipeline de Deep Learning sequencial, Autoencoder não-supervisionado, dashboard interativo, hot-swap atômico de modelos e infraestrutura MLOps via MLflow + ONNX Runtime.
+> **TCC · Engenharia da Computação · Centro Universitário Facens · 2026**
+>
+> *Detecção de falhas em compressores de ar metroferroviários por monitoramento de condição e
+> assistente de consulta documental (RAG): um estudo com os conjuntos MetroPT-3, MetroPT e MetroPT2*
+>
+> Lucas de Moraes Silveira · Raphael Nobuyuki Haga Okuyama · Ronaldo Simeone Antonio —
+> Orientador: Prof. Marco Antonio Montebello Junior
+
+Plataforma full-stack de **monitoramento de condição** da unidade de produção de ar (APU) de
+trens do metrô do Porto: ingere leituras de sensores (simulador, MQTT ou OPC UA), detecta falhas
+em tempo real com modelos ONNX avaliados **sem vazamento de dados**, emite alertas por WebSocket,
+Telegram e e-mail, registra eventos e ordens de serviço, e aciona um **assistente de manutenção**
+que consulta manuais técnicos via **MCP** (*Model Context Protocol*) e gera o plano de reparo com
+um LLM **local** (Llama 3.2 3B no Ollama) — abstendo-se quando não encontra contexto confiável.
+
+> 📘 **Quer entender o TCC inteiro?** Leia o **[Guia Completo do TCC](GUIA_COMPLETO_TCC.md)**:
+> problema, dados, arquitetura, linguagens e onde cada uma é usada, cada método e por que foi
+> escolhido, walk-through de ponta a ponta, resultados, limitações e perguntas da banca.
+
+### Resultados em uma tabela
+
+| Pergunta | Resposta (protocolo sem vazamento, resultados congelados em 22/10/2026) |
+|---|---|
+| Detecta falhas? | **Sim, em andamento**: 1 a 3 das 6 falhas de teste por modelo (4 no EWMA), 0,26–1,04 alarme falso/dia. O vazamento de ar de um trem **inédito** (MetroPT2) foi detectado pelos 8 detectores, ~30–40 min antes do alarme de baixa pressão do próprio trem. |
+| Antecipa (≥ 2 h)? Estima o tempo até a falha? Identifica o tipo de falha? | **Não**, nos três casos — e o trabalho mostra por quê. |
+| Algum modelo é estatisticamente melhor? | **Não** (Wilcoxon pareado, menor p = 0,094). O Random Forest segue campeão pela regra RN-05 e por ter a maior PR-AUC (0,436) e ROC-AUC (0,830). |
+| Por que a literatura fala em 99%? | O **protocolo decide o resultado**: o mesmo Random Forest vai de PR-AUC **0,9992** (divisão aleatória) a **0,436** (validação temporal purgada). Nenhum modelo supera a acurácia de 0,978 de quem sempre responde "normal". |
+| E o assistente? | Mecanismo **seguro** de consulta: em produção nunca gerou procedimento para pergunta sem resposta e bloqueou os 4 ataques ensaiados, mas se absteve em 94–96% das perguntas (corpus sem o manual real da APU). |
 
 ---
 
 ## Sumário
 
+0. [Guia Completo do TCC](GUIA_COMPLETO_TCC.md) *(documento à parte)*
 1. [Visão Geral](#1-visão-geral)
 2. [Stack Tecnológica](#2-stack-tecnológica)
 3. [Arquitetura do Monorepo](#3-arquitetura-do-monorepo)
@@ -22,88 +50,109 @@
 14. [Testes](#14-testes)
 15. [Demo do Simulador](#15-demo-do-simulador)
 16. [Troubleshooting](#16-troubleshooting)
-17. [Autores & Licença](#17-autores--licença)
+17. [Segurança](#17-segurança-rnf-62--rnf-63)
+18. [Autores & Licença](#18-autores--licença)
 
-> **Avaliação científica (nível de tese).** Protocolo temporal sem vazamento,
-> métricas por evento, incerteza, XAI, RAG avaliado (benchmark + ablação +
-> red-team) e todos os requisitos novos (RF-28…RF-38, RNF-78…RNF-85,
-> RN-01…RN-05), com o status e a evidência de cada um, estão em
+> **Avaliação científica.** Protocolo temporal sem vazamento, métricas por evento, incerteza,
+> XAI, RAG avaliado (benchmark + ablação + red-team) e os requisitos RF-28…RF-38,
+> RNF-78…RNF-85 e RN-01…RN-05, com status e evidência, em
 > [`docs/pesquisa/requisitos-doutorado.md`](docs/pesquisa/requisitos-doutorado.md).
-> Resultados: [`docs/temporal_evaluation.md`](docs/temporal_evaluation.md),
-> [`docs/rag_benchmark.md`](docs/rag_benchmark.md),
-> [`docs/cross_dataset_evaluation.md`](docs/cross_dataset_evaluation.md)
-> (MetroPT-3 + MetroPT 2022),
-> [`docs/model_evaluation_leakfree.md`](docs/model_evaluation_leakfree.md)
-> (todos os modelos retreinados sem vazamento, com matrizes de confusão fora do tempo),
-> [`docs/statistical_baselines.md`](docs/statistical_baselines.md) (CUSUM/EWMA no
-> mesmo protocolo), [`docs/label_audit.md`](docs/label_audit.md) (auditoria
-> pré-registrada dos rótulos) e [`docs/datasets.md`](docs/datasets.md)
-> (os 3 datasets em números). Reproduzir tudo:
-> `bash scripts/reproduce-thesis.sh`.
+> Resultados: [`docs/model_evaluation_leakfree.md`](docs/model_evaluation_leakfree.md)
+> (todos os modelos sem vazamento, matrizes de confusão fora do tempo),
+> [`docs/statistical_baselines.md`](docs/statistical_baselines.md) (CUSUM/EWMA),
+> [`docs/metropt2_unseen_failures.md`](docs/metropt2_unseen_failures.md) (equipamento inédito),
+> [`docs/anticipation_study.md`](docs/anticipation_study.md) (antecipação com controle de acaso),
+> [`docs/cross_dataset_evaluation.md`](docs/cross_dataset_evaluation.md),
+> [`docs/label_audit.md`](docs/label_audit.md) (auditoria pré-registrada dos rótulos),
+> [`docs/rag_benchmark.md`](docs/rag_benchmark.md), [`docs/rag_diagnosis_benchmark.md`](docs/rag_diagnosis_benchmark.md),
+> [`docs/datasets.md`](docs/datasets.md) e [`docs/results_freeze.md`](docs/results_freeze.md)
+> (congelamento + SHA-256). Reproduzir tudo: `bash scripts/reproduce-thesis.sh`.
 >
-> **Operação.** Telemetria por MQTT ou OPC UA (`TELEMETRY_TRANSPORT`),
-> série de predições em hypertable TimescaleDB (migração 0009, opcional),
-> painel Grafana `predictiq-reliability` para RN-04/RNF-84/RF-38, eventos,
-> telemetria e shadow.
+> **Operação.** Telemetria por MQTT ou OPC UA (`TELEMETRY_TRANSPORT`), série de predições em
+> hypertable TimescaleDB (migração 0009, opcional), painel Grafana `predictiq-reliability`,
+> eventos, telemetria e modo sombra.
 
 ---
 
 ## 1. Visão Geral
 
-O **PredictIQ** é um sistema completo de **manutenção preditiva** para o compressor de ar do metrô de Porto (dataset oficial **MetroPT-3** da UCI). Ele integra três aplicações independentes em um monorepo, orquestradas via Docker Compose:
+O **PredictIQ** é o protótipo do TCC: um sistema de **detecção de falhas** (monitoramento de
+condição) para o compressor de ar dos trens do metrô do Porto. Usa três conjuntos públicos da
+mesma família — **MetroPT-3** (UCI, 2020) e **MetroPT** (Zenodo, 2022) para treino e validação
+progressiva, e **MetroPT2** (Zenodo, 2022, outro trem) **reservado só para teste externo** —, com
+9 falhas reais documentadas (vazamentos de ar, vazamentos de óleo e falha do secador).
+
+Quatro aplicações em um monorepo, orquestradas pelo Docker Compose (16 serviços):
 
 | Aplicação | Papel |
 |---|---|
-| `apps/backend` | API FastAPI com Clean Architecture: I/O em `routers/`, regras em `services/`, ORM em `models/`. Roda o pipeline de inferência contínuo, expõe SSE, WebSocket e endpoints REST. |
-| `apps/frontend` | Dashboard Next.js 16 com Server/Client Components, telemetria SSE @1 Hz, radar chart com normalização absoluta, alertas WebSocket e modo LIVE para o ativo `APU-Trem-042`. |
-| `apps/ml` | Pipeline de treinamento, exportação ONNX (opset 17), tracking via MLflow e script de promoção do melhor modelo para produção. |
+| `apps/ml` | Ingestão e harmonização dos 3 conjuntos (10 sinais comuns, 10 s), 68 atributos causais por segmento, **protocolo aninhado sem vazamento** (walk-forward purgado × LOFO interno, Platt, limiar de custo), 8 modelos + CUSUM/EWMA, análises complementares, exportação ONNX com paridade, cartões de modelo, registro no MLflow. |
+| `apps/backend` | API FastAPI em camadas (`routers/` → `services/` → `models/`): simulador com 6 cenários reais, ingestão MQTT/OPC UA, inferência contínua, escala de risco, episódios (RN-03), causa raiz por oclusão, alertas, notificações (Celery), deriva (PSI), auth JWT/Argon2id, trilha de auditoria encadeada. |
+| `apps/frontend` | Painel Next.js 16 (TypeScript estrito): frota, monitoramento do ativo (SSE @ 1 Hz), simulação, histórico/relatórios, configurações, assistente com plano em *streaming*; temas claro/escuro e layout móvel. |
+| `apps/mcp-server` | Servidor MCP (`search_maintenance_manual`), indexação incremental dos manuais em PDF e repositório vetorial local (SQLite + NumPy, embeddings MiniLM multilíngue, cosseno ≥ 0,6). |
 
 **Diferenciais técnicos**:
 
-- **Hot-Swap atômico de modelos** (`PUT /models/active`) sem reiniciar o servidor — usa protocolo de duas fases (load fora do lock, swap dentro do lock).
-- **9 modelos servidos via ONNX Runtime**: Random Forest, XGBoost, MLP, RF v2, XGBoost v2, TCN, BiLSTM, PatchTST e Conv1D **Autoencoder não-supervisionado**.
-- **Simulador real**: replay sequencial do parquet MetroPT-3 (~1.5M linhas) com modos `NORMAL`, `DEGRADATION` (interpolação vetorizada) e `FAILURE` (4 janelas reais de air-leak).
-- **Pipeline de inferência contínuo**: `SensorStreamService → SensorBuffer (deque) → MetroPTPreprocessor → ModelService → DB + WS`.
+- **Avaliação sem vazamento** — cada número é medido em uma falha que o modelo não conhecia;
+  hiperparâmetros, calibração e limiar são escolhidos só no treino; regras RN-01…RN-05 fixadas
+  antes dos resultados; resultados congelados com SHA-256.
+- **7 modelos servidos via ONNX Runtime** (geração `*_v3`): Random Forest (*champion*), XGBoost
+  (*challenger* em sombra), MLP, TCN, BiLSTM, PatchTST e Autoencoder Conv1D não-supervisionado.
+- **Hot-swap atômico** (`PUT /models/active`) sem reiniciar — carga fora do lock, troca sob
+  `asyncio.Lock`; modo sombra e grupo canário determinístico.
+- **Escala de risco única** relativa ao limiar calibrado de cada modelo (risco 0,65 = decisão do
+  modelo), espelhada no painel.
+- **Assistente RAG via MCP com abstenção** e barreiras determinísticas contra injeção de
+  instruções e procedimentos inseguros; LLM 100% local.
+- **Simulador honesto** — 6 cenários reais com selo *"Vista no treino · demonstração"* ou
+  *"Inédita · teste honesto"*.
 - **Reverse proxy Nginx** configurado para SSE/WebSocket com `proxy_read_timeout 3600s`.
 
 ---
 
 ## 2. Stack Tecnológica
 
+Versões conforme a monografia (Tabelas 5 a 9). Onde e por que cada linguagem é usada:
+[Guia Completo, §6](GUIA_COMPLETO_TCC.md#6-linguagens-e-tecnologias--onde-e-por-quê).
+
 | Camada | Tecnologia | Versão | Responsabilidade |
 |---|---|---|---|
-| **Frontend** | Next.js | 16.2.3 | App Router, Server Components |
+| **Frontend** | Next.js (App Router) | 16.3.4 | Páginas, Server/Client Components |
 | | React | 19.2.4 | UI |
-| | TypeScript | 5.x (strict) | Tipagem |
-| | Tailwind CSS | 4.x | Estilização |
-| | shadcn/ui + Radix UI | latest | Componentes |
-| | Recharts | 3.8 | Radar, line charts, gauge |
-| | pnpm | latest (via Corepack) | Gerenciador de pacotes |
-| | Vitest + Playwright | 4.1 / 1.59 | Unit + E2E |
-| | MSW | 2.13 | Mock Service Worker (testes) |
-| **Backend** | FastAPI | 0.115 | Framework HTTP/SSE/WS |
-| | Pydantic v2 + pydantic-settings | 2.12 / 2.9 | DTOs e config |
-| | SQLAlchemy (async) | 2.0.40 | ORM |
-| | asyncpg | 0.30 | Driver Postgres async |
-| | Alembic | 1.18 | Migrations |
-| | structlog | 25.3 | Logging JSON |
-| | slowapi | 0.1.9 | Rate limiting |
-| | Celery | 5.4 | Fila assíncrona de notificações (RNF-50/RNF-51) |
-| | Redis | 7 (Docker) | Broker do Celery (só transporte de mensagens — não é o rate limiter) |
-| | ONNX Runtime | ≥1.18 | Servir todos os modelos DL |
-| | PyArrow + pandas | 14.x / 3.x | Leitura do parquet do simulador |
-| **Banco** | PostgreSQL | 15 (Docker) | Histórico de predições (`predictions`) |
-| **ML / Treino** | scikit-learn | 1.8 | RF + pipelines |
-| | XGBoost | ≥2.1 | Gradient Boosting |
-| | Optuna | ≥3.6 | Tuning de hiperparâmetros |
-| | imbalanced-learn | 0.14 | SMOTE para classe minoritária |
-| | PyTorch + Lightning | ≥2.3 | MLP, TCN, BiLSTM, PatchTST, Autoencoder |
-| | torchmetrics | ≥1.4 | Métricas durante treino |
-| | skl2onnx / onnxmltools | ≥1.17 / ≥1.12 | Export ONNX para árvores |
-| **MLOps** | MLflow | ≥2.14 (Docker) | Tracking + promotion |
-| **Infra** | Docker + Compose | 24.x / v2 | Orquestração |
-| | Nginx | 1.25-alpine | Reverse proxy / SSE-WS |
-| **IA Local (próxima fase)** | Ollama (Llama 3.2 3B) + MCP + vetor store local | — | Assistente RAG para sugestões de reparo |
+| | TypeScript | 5.x (strict) | Tipagem estática |
+| | Tailwind CSS + shadcn/ui + Radix UI | 4.x / 4.2 / 1.4.3 | Estilo por variáveis de tema e componentes acessíveis |
+| | Recharts / react-markdown / dayjs | 3.8 / 9.1 / 1.11 | Gráficos, plano em Markdown seguro, datas |
+| | pnpm | via Corepack | Gerenciador de pacotes |
+| | Vitest + Testing Library + jest-axe | 4.1 / 16.3 / 11.0 | Unit, hooks, acessibilidade |
+| | Playwright + MSW / Storybook / Lighthouse | 1.59 + 2.13 / 10.6 / 13.5 | E2E, componentes isolados, desempenho |
+| **Backend** | Python | 3.11 (`python:3.11-slim`) | Linguagem da API e do MCP |
+| | FastAPI / Starlette / Uvicorn | 0.141.1 / 1.6.0 / 0.34.0 | HTTP, SSE, WebSocket, ASGI |
+| | Pydantic v2 + pydantic-settings | 2.12 / 2.9 | DTOs e configuração |
+| | SQLAlchemy (async) / asyncpg / Alembic | 2.0.40 / 0.30 / 1.18 | ORM, driver, 9 migrações |
+| | ONNX Runtime | ≥ 1.18 | Execução de todos os modelos servidos |
+| | Celery + Redis | 5.4 / 7 | Fila de notificações, deriva agendada, cache de inferência |
+| | aiomqtt / asyncua | 2.4 / 1.1.5 | Ingestão industrial MQTT e OPC UA |
+| | PyJWT / argon2-cffi | 2.14 / 25.1 | Tokens JWT e hash de senhas |
+| | structlog / slowapi / httpx | 25.3 / 0.1.9 / 0.28 | Logs JSON sanitizados, rate limit, cliente HTTP |
+| | prometheus-client / OpenTelemetry | 0.26 / 1.44 | Métricas e rastros |
+| **Banco** | PostgreSQL + TimescaleDB | 15 / 2.17.2 | Dados relacionais e hipertabela de predições |
+| **ML / Treino** | Python | 3.12.10 | Pipeline de treino e avaliação |
+| | NumPy / pandas / PyArrow / SciPy | 1.26 / 2.3 / 20.0 / 1.17 | Dados, Parquet, Wilcoxon/Friedman |
+| | scikit-learn / XGBoost | 1.8.0 / 3.2.0 | Regressão logística, RF, GBM |
+| | PyTorch + Lightning | ≥ 2.3 | MLP, TCN, BiLSTM, PatchTST, Autoencoder |
+| | skl2onnx / onnxmltools / ONNX | ≥ 1.17 / ≥ 1.12 / ≥ 1.16 | Exportação com verificação de paridade |
+| | SHAP / CodeCarbon | 0.49 / 3.3.1 | Conferência da explicação; energia |
+| | imbalanced-learn / Optuna | 0.14 / ≥ 3.6 | **Só a geração anterior (arquivada)** |
+| **MLOps** | MLflow / DVC + MinIO | ≥ 2.14 / ≥ 3.67 | Registro *champion/challenger*; versionamento dos dados |
+| **IA local** | MCP SDK oficial | 2.2.0 | Servidor e cliente MCP (*streamable-http*) |
+| | sentence-transformers + MiniLM-L12-v2 | 6.0.1 | Embeddings multilíngues de 384 dimensões |
+| | pypdf / SQLite + NumPy | 6.18 / — | Extração dos manuais; repositório vetorial |
+| | Ollama + Llama 3.2 3B (Qwen2.5 3B na ablação) | — | Geração local do plano de manutenção |
+| **Infra** | Docker + Compose | 24.x / v2 | Orquestração dos 16 serviços |
+| | Nginx | 1.25-alpine | Reverse proxy, SSE/WS, cabeçalhos de segurança |
+| | Eclipse Mosquitto | 2.0.20 | Broker MQTT |
+| | Prometheus / cAdvisor / Grafana / Jaeger | 3.0.1 / 0.49.1 / 11.4 / 1.62 | Observabilidade |
+| | GitHub Actions / pip-audit / pnpm audit / OWASP ZAP | — | CI, auditoria de dependências, varredura passiva |
 
 ---
 
@@ -112,113 +161,68 @@ O **PredictIQ** é um sistema completo de **manutenção preditiva** para o comp
 ```
 projeto-tcc/
 ├── apps/
-│   ├── backend/                          # FastAPI — Clean Architecture
-│   │   ├── alembic/                      # Migrations versionadas
-│   │   │   └── versions/0001_create_predictions_table.py
+│   ├── ml/                         # Python 3.12 — dados, treino, avaliação
 │   │   ├── src/
-│   │   │   ├── main.py                   # create_app() + lifespan
-│   │   │   ├── core/
-│   │   │   │   ├── config.py             # Settings (pydantic-settings)
-│   │   │   │   ├── database.py           # Async engine + session
-│   │   │   │   ├── auth.py               # require_admin_token (X-Admin-Token)
-│   │   │   │   ├── exceptions.py         # AppError + handlers JSON
-│   │   │   │   ├── logging.py            # structlog config
-│   │   │   │   ├── rate_limit.py         # slowapi limiter
-│   │   │   │   └── ws_manager.py         # ConnectionManager singleton
-│   │   │   ├── models/prediction.py      # ORM SQLAlchemy
-│   │   │   ├── routers/
-│   │   │   │   ├── health.py             # GET /health
-│   │   │   │   ├── predict.py            # POST /predict/  (rate-limited)
-│   │   │   │   ├── predictions.py        # GET /v1/predictions  (paginado)
-│   │   │   │   ├── models.py             # GET /models, PUT /models/active
-│   │   │   │   ├── stream.py             # GET /stream/sensors (SSE)
-│   │   │   │   ├── simulator.py          # GET/PUT /simulator/mode
-│   │   │   │   └── alerts_ws.py          # WS /ws/alerts
-│   │   │   ├── schemas/                  # DTOs Pydantic v2
-│   │   │   └── services/
-│   │   │       ├── model_registry.py     # Hot-swap atômico (asyncio.Lock)
-│   │   │       ├── model_service.py      # Adapter unificado
-│   │   │       ├── mlp_adapter.py        # MLP ONNX
-│   │   │       ├── onnx_tree_adapter.py  # RF v2 / XGBoost v2 ONNX
-│   │   │       ├── onnx_sequence_adapter.py    # TCN / BiLSTM / PatchTST
-│   │   │       ├── onnx_autoencoder_adapter.py # Conv1D AE (MSE → sigmoid)
-│   │   │       ├── simulator.py          # SensorSimulator (parquet streamer)
-│   │   │       ├── sensor_stream_service.py    # Broadcast SSE @1Hz
-│   │   │       ├── inference_pipeline.py # Loop: stream → ML → DB → WS
-│   │   │       ├── feature_buffer.py     # Deque thread-safe (janela=30)
-│   │   │       ├── preprocessing.py      # Mirror do MetroPTPreprocessor
-│   │   │       ├── prediction_service.py # save_prediction + list_predictions
-│   │   │       ├── alert_service.py      # Push WS quando P ≥ limiar do modelo ativo
-│   │   │       └── health_service.py
-│   │   ├── tests/                        # pytest + SQLite em memória
-│   │   ├── alembic.ini
-│   │   ├── Dockerfile
-│   │   └── requirements.txt
+│   │   │   ├── ingest_metropt.py / ingest_metropt2022.py / ingest_metropt2.py
+│   │   │   ├── preprocessing.py            # MetroPTPreprocessor (68 atributos, causal por segmento)
+│   │   │   ├── nested_protocol.py / evaluate_nested.py / temporal_validation.py
+│   │   │   ├── event_metrics.py / classification_metrics.py / stat_tests.py / promotion_gate.py
+│   │   │   ├── statistical_baselines.py    # CUSUM / EWMA
+│   │   │   ├── models/                     # TCN, BiLSTM, PatchTST, Autoencoder
+│   │   │   ├── evaluate_metropt2.py / evaluate_anticipation.py / evaluate_rul.py
+│   │   │   ├── evaluate_sensitivity.py / evaluate_cross_dataset.py / digital_twin.py
+│   │   │   ├── audit_labels.py             # auditoria pré-registrada dos rótulos
+│   │   │   ├── train_production.py         # gera os 7 modelos *_v3
+│   │   │   └── register_models.py          # MLflow champion / challenger
+│   │   ├── models/                         # *_v3.onnx, *_v3_card.json, eval_*.json, legacy/
+│   │   ├── notebooks/01_eda_metropt.ipynb
+│   │   ├── dvc.yaml                        # pipeline versionado (remoto MinIO)
+│   │   └── tests/
 │   │
-│   ├── frontend/                         # Next.js 16 (App Router)
-│   │   ├── app/
-│   │   │   ├── layout.tsx
-│   │   │   ├── page.tsx                  # Dashboard principal
-│   │   │   ├── sensors/[id]/             # Detalhe de sensor
-│   │   │   ├── history/page.tsx
-│   │   │   └── globals.css               # Tema (variáveis CSS)
-│   │   ├── components/
-│   │   │   ├── dashboard/
-│   │   │   │   ├── FleetDashboard.tsx    # Orquestrador
-│   │   │   │   ├── FleetKPIs.tsx
-│   │   │   │   ├── AssetTable.tsx        # Tabela de frota
-│   │   │   │   ├── AssetRadarChart.tsx   # Radar (normalização absoluta)
-│   │   │   │   └── AssetEfficiencyChart.tsx
-│   │   │   ├── header.tsx / sidebar.tsx
-│   │   │   ├── alert-panel.tsx / alert-toast-queue.tsx
-│   │   │   ├── sensor-chart.tsx / sensor-monitor.tsx
-│   │   │   ├── error-boundary.tsx
-│   │   │   └── ui/                       # shadcn/ui
-│   │   ├── hooks/
-│   │   │   ├── use-sse.ts
-│   │   │   ├── use-sensor-data.ts        # Seed + SSE + poll + WS
-│   │   │   ├── use-alert-websocket.ts
-│   │   │   └── use-prediction-history.ts
-│   │   ├── lib/api-client.ts             # fetch wrappers tipados
-│   │   ├── mocks/                        # MSW handlers
-│   │   ├── __tests__/                    # Vitest
-│   │   ├── e2e/                          # Playwright
-│   │   ├── Dockerfile / package.json / next.config.ts
-│   │   └── playwright.config.ts / vitest.config.ts
+│   ├── backend/                    # Python 3.11 — FastAPI (Clean Architecture)
+│   │   ├── alembic/versions/               # 0001…0009 (predictions … timescale)
+│   │   ├── src/
+│   │   │   ├── main.py                     # create_app() + lifespan (modelo, simulador, pipeline)
+│   │   │   ├── core/                       # config, database, auth, security, risk, metrics,
+│   │   │   │                               # tracing, timescale, celery_app, ws_manager, log_sanitizer
+│   │   │   ├── routers/                    # health, predict, predictions, models, stream, simulator,
+│   │   │   │                               # alerts_ws, maintenance, settings, monitoring, history,
+│   │   │   │                               # auth, observability
+│   │   │   ├── services/                   # model_registry, onnx_*_adapter, inference_pipeline,
+│   │   │   │                               # sensor_stream_service, simulator, failure_scenarios,
+│   │   │   │                               # fleet_service, mqtt/opcua_telemetry, event_tracker,
+│   │   │   │                               # failure_event_service, root_cause_service, shadow_service,
+│   │   │   │                               # maintenance_suggestion_service, mcp_client, ollama_client,
+│   │   │   │                               # grounding, safety_guard, notificações, drift_monitor…
+│   │   │   ├── tasks/                      # notification_tasks, drift_tasks (Celery)
+│   │   │   ├── models/ / schemas/          # ORM SQLAlchemy / DTOs Pydantic v2
+│   │   └── tests/                          # pytest + SQLite em memória
 │   │
-│   └── ml/                               # Treinamento + MLOps
-│       ├── data/raw/                     # CSV original (ignorado pelo git)
-│       ├── data/processed/               # Parquet (ignorado pelo git)
-│       ├── models/                       # Artefatos .onnx / .joblib / *_card.json
-│       ├── src/
-│       │   ├── ingest_metropt.py         # CSV → Parquet rotulado
-│       │   ├── preprocessing.py          # MetroPTPreprocessor (espelhado no backend)
-│       │   ├── balancing.py              # SMOTE + split estratificado
-│       │   ├── datamodule_sequence.py    # Sliding windows (treino sequencial)
-│       │   ├── datamodule_unsupervised.py# Apenas janelas saudáveis (AE)
-│       │   ├── models/
-│       │   │   ├── tcn.py / bilstm.py / patchtst.py / autoencoder.py
-│       │   ├── train_random_forest.py    # SMOTE + GridSearchCV + F2-threshold
-│       │   ├── train_xgboost.py          # Optuna
-│       │   ├── train_mlp.py              # PyTorch Lightning → ONNX
-│       │   ├── train_sequential.py       # TCN / BiLSTM / PatchTST
-│       │   ├── train_autoencoder.py      # Conv1D não-supervisionado
-│       │   ├── evaluate_sequential.py    # CV temporal para DL
-│       │   └── promote_model.py          # MLflow → models/
-│       ├── notebooks/01_eda_metropt.ipynb
-│       ├── tests/                        # pytest
-│       ├── Dockerfile / requirements.txt
-│       └── EDA.ipynb
+│   ├── frontend/                   # TypeScript — Next.js 16 (App Router)
+│   │   ├── app/                            # page.tsx (frota), sensors/, history/, settings/, login/
+│   │   ├── components/                     # dashboard/, sensor-monitor/, simulation-panel/,
+│   │   │                                   # maintenance-assistant/, history/, alert-*/, ui/ (shadcn)
+│   │   ├── hooks/                          # use-sse, use-alert-websocket, use-maintenance-stream,
+│   │   │                                   # use-sensor-data, use-history-data, use-active-threshold…
+│   │   ├── lib/                            # api-client, risk-thresholds, maintenance-stream, auth…
+│   │   ├── mocks/ · __tests__/ · e2e/      # MSW, Vitest, Playwright
+│   │   └── app/globals.css                 # variáveis de tema (claro/escuro)
+│   │
+│   └── mcp-server/                 # Python 3.11 — MCP + RAG
+│       ├── server.py                       # ferramenta search_maintenance_manual
+│       ├── semantic_search.py              # cosseno ≥ 0,6, top-5
+│       ├── vector_store.py                 # SQLite + NumPy (substituiu o ChromaDB)
+│       ├── index_manuals.py                # pypdf → trechos 1.000/150 → embeddings
+│       └── CORPUS-CURATION.md
 │
-├── infra/
-│   └── nginx/nginx.conf                  # SSE + WS + timeouts 3600s
-│
-├── docs/
-│   └── model_comparison.*                # Benchmarks
-│
-├── docker-compose.yml                    # Orquestração unificada
-├── diretrizes do projeto                             # Diretrizes do projeto
-├── .gitignore
+├── infra/                          # nginx/, mosquitto/, prometheus/, grafana/
+├── scripts/                        # reproduce-thesis.sh, write_manifest.py
+├── docs/                           # relatórios de cada experimento, figuras-tcc/, pesquisa/
+├── .github/workflows/ci.yml        # 11 tarefas: auditoria, lint, testes, mutação, E2E, carga
+├── docker-compose.yml              # 16 serviços
+├── GUIA_COMPLETO_TCC.md            # explicação completa do TCC
+├── DOCUMENTACAO_ARQUITETURAL_TCC.md
+├── diretrizes do projeto                       # diretrizes de código do projeto
 └── README.md
 ```
 
@@ -941,7 +945,7 @@ Evidência: [`apps/backend/maintenance_stream_e2e_metrics.json`](apps/backend/ma
 
 ### 4.10. Notificações críticas via Telegram (RF-24 / RNF-48)
 
-**O que é**: quando o risco do modelo ativo atinge o **nível crítico configurado** (padrão 0,85; ver §4.11 — com o limiar calibrado do modelo, é um risco relativo a ele, `src/core/risk.py`: 0,65 = o modelo decide falha; sem limiar, a regra original `probability > 0.85`) (falha **crítica** — limiar próprio, independente do `ALERT_PROBABILITY_THRESHOLD` de 0.70 da RF-14/§4.3 e do `MAINTENANCE_SUGGESTION_THRESHOLD` de 0.70 da RF-22/§4.8), o backend envia uma mensagem de texto simples para um chat do Telegram via `TelegramNotificationAdapter`, respeitando um rate limit de **1 alerta por equipamento a cada 15 minutos**. Reaproveita o mesmo ponto de integração da RF-14 (`AlertService.process_prediction`) — nenhuma segunda inferência, nenhum novo hook no pipeline de ML.
+**O que é**: quando o risco do modelo ativo atinge o **nível crítico configurado** (padrão 0,65 no código atual; ver §4.11 — com o limiar calibrado do modelo, é um risco relativo a ele, `src/core/risk.py`: 0,65 = o modelo decide falha; sem limiar, a regra original `probability > 0.85`) (falha **crítica** — limiar próprio, independente do `ALERT_PROBABILITY_THRESHOLD` de 0.70 da RF-14/§4.3 e do `MAINTENANCE_SUGGESTION_THRESHOLD` de 0.70 da RF-22/§4.8), o backend envia uma mensagem de texto simples para um chat do Telegram via `TelegramNotificationAdapter`, respeitando um rate limit de **1 alerta por equipamento a cada 15 minutos**. Reaproveita o mesmo ponto de integração da RF-14 (`AlertService.process_prediction`) — nenhuma segunda inferência, nenhum novo hook no pipeline de ML.
 
 ```mermaid
 flowchart TD
@@ -1563,19 +1567,18 @@ A geração anterior (split aleatório + SMOTE, com vazamento) foi arquivada em 
 ### Autoencoder Conv1D — Detecção Não-Supervisionada
 
 ```
-Entrada: (B, T=60, C=12)         ← janela de 60 ticks × 12 sensores
+Entrada: (B, T=60, C=10)         ← janela de 60 leituras × 10 sinais harmonizados
+                                   (Reservoirs e Oil_level descartados — mudam de significado 2020→2022)
 
 Encoder:
-  Conv1D(12→32, k=4, s=2) + BN + GELU   → (B, 30, 32)
-  Conv1D(32→64, k=4, s=2) + BN + GELU   → (B, 15, 64)
-  Conv1D(64→128, k=4, s=2) + BN + GELU  → (B,  8, 128)
+  Conv1D(10→32, k=5, s=2) + BN + GELU   → (B, 30, 32)
+  Conv1D(32→64, k=5, s=2) + BN + GELU   → (B, 15, 64)
+  Conv1D(64→128, k=5, s=2) + BN + GELU  → (B,  8, 128)
 
 Decoder:
-  ConvTranspose1D(128→64, k=4, s=2)     → (B, 15, 64)
-  ConvTranspose1D( 64→32, k=4, s=2)     → (B, 30, 32)
-  ConvTranspose1D( 32→12, k=4, s=2)     → (B, 60, 12)
+  3 × ConvTranspose1D                   → (B, 60, 10)
 
-Saída: (B, 60, 12)                ← reconstrução
+Saída: (B, 60, 10)                ← reconstrução
 ```
 
 Score de anomalia via sigmoid centrada no threshold de treino:
@@ -1588,7 +1591,7 @@ mse = 2 × mse_threshold → score ≈ 0.95  (anomalia clara)
 mse ≪ mse_threshold     → score ≈ 0.02  (operação saudável)
 ```
 
-O `mse_threshold` é o **percentil 99** do MSE calculado nas janelas saudáveis do conjunto de validação, persistido em `autoencoder_v1_card.json`.
+O `mse_threshold` é o **percentil 99** do MSE calculado nas janelas saudáveis do conjunto de validação, persistido em `autoencoder_v3_card.json`. O escore indica grau de anomalia, não probabilidade — por isso o protocolo o calibra (Platt) antes de comparar com os demais modelos. O Autoencoder é o único modelo que treina só com operação normal e teve o maior custo esperado (117,1) na configuração de referência.
 
 ### Simulador — Streaming Real do MetroPT-3
 
@@ -1596,7 +1599,20 @@ O `mse_threshold` é o **percentil 99** do MSE calculado nas janelas saudáveis 
 |---|---|
 | `NORMAL` | Replay sequencial das linhas com `label=0` (operação saudável) |
 | `FAILURE` | Replay sequencial das **4 janelas de falha reais** identificadas no paper do MetroPT-3 |
-| `DEGRADATION` | Interpolação linear vetorizada (`lerp`) entre linha normal e linha de falha, com drift `0 → 1` em 300 ticks |
+| `DEGRADATION` | Interpolação linear vetorizada (`lerp`) entre linha normal e linha de falha, com drift `0 → 1` em 300 ticks — **só demonstração**, não é trajetória física validada |
+
+Além dos modos, há **6 cenários de falha real** (`PUT /simulator/scenario`, `failure_scenarios.py`), que reproduzem a sequência real de sensores começando no início registrado da falha (`lead_minutes = 0`, padrão do painel; a API aceita até 360 min antes), com o *buffer* preenchido pelo histórico real do mesmo arquivo:
+
+| Cenário | Conjunto | Selo no painel |
+|---|---|---|
+| Vazamento de ar — jul/2020 | MetroPT-3 | Vista no treino · demonstração |
+| Vazamento de ar (consumidores) — fev/2022 | MetroPT | Vista no treino · demonstração |
+| Falha da válvula do secador — mar/2022 | MetroPT | Vista no treino · demonstração |
+| Vazamento de óleo — mai/2022 | MetroPT | Vista no treino · demonstração |
+| Vazamento de ar — jun/2022 | MetroPT2 | **Inédita · teste honesto** |
+| Vazamento de óleo — jul/2022 | MetroPT2 | **Inédita · teste honesto** |
+
+Na reprodução ao vivo pelo caminho exato de produção, 30 das 42 combinações modelo × cenário foram detectadas (PatchTST 6/6; RF e XGBoost 4/6).
 
 Janelas de falha utilizadas:
 
@@ -2984,12 +3000,15 @@ O job `security-audit` (`.github/workflows/ci.yml`) roda em todo push/PR:
 
 ### Autores
 
-| Nome |
-|---|
-| Lucas de Moraes Silveira |
-| Raphael Nobuyuki Haga Okuyama |
-| Ronaldo Simeone Antonio |
+| Nome | Papel |
+|---|---|
+| Lucas de Moraes Silveira | Autor |
+| Raphael Nobuyuki Haga Okuyama | Autor |
+| Ronaldo Simeone Antonio | Autor |
+| Prof. Marco Antonio Montebello Junior | Orientador |
+
+Trabalho de conclusão de curso apresentado ao **Centro Universitário Facens** (Sorocaba/SP, 2026) como exigência parcial para obtenção do diploma de graduação em **Engenharia da Computação**. Como citar: [`CITATION.cff`](CITATION.cff).
 
 ### Licença
 
-Projeto desenvolvido **exclusivamente para fins acadêmicos** (TCC — Indústria 4.0). O dataset MetroPT-3 é de uso público sob os termos da UCI Machine Learning Repository.
+Projeto desenvolvido **exclusivamente para fins acadêmicos** (TCC — Indústria 4.0). Os conjuntos de dados são públicos: MetroPT-3 (UCI Machine Learning Repository; Davari *et al.*, 2021), MetroPT e MetroPT2 (Zenodo; Veloso *et al.*, 2022), usados sob os termos de seus repositórios.
