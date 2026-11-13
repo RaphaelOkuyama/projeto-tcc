@@ -72,12 +72,13 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
             )
         )
         svc = AuthService(s)
-        for name, role in [
+        users: list[tuple[str, security.Role]] = [
             ("ana", "operator"),
             ("tec", "technician"),
             ("eng", "engineer"),
             ("root", "admin"),
-        ]:
+        ]
+        for name, role in users:
             await svc.create_user(
                 UserCreate(username=name, password=PASSWORD, role=role)
             )

@@ -76,7 +76,7 @@ test.describe("Dashboard — fluxo normal (RNF-16)", () => {
     await expect(page.getByText(/tp3.*pressão painel/i)).toBeVisible();
     await expect(page.getByText(/temperatura óleo/i)).toBeVisible();
     await expect(page.getByText(/corrente motor/i)).toBeVisible();
-    await expect(page.getByText(/anomaly score/i)).toBeVisible();
+    await expect(page.getByText(/índice de risco/i)).toBeVisible();
   });
 
   test("2. painel de auditoria renderiza com área de histórico", async ({
@@ -110,7 +110,7 @@ test.describe("Dashboard — fluxo normal (RNF-16)", () => {
     });
 
     // Correção (pré-existente, não relacionada a MSW): a probabilidade
-    // hoje é exibida no KPI "Anomaly Score" (`sensor-monitor.tsx`), não
+    // hoje é exibida no KPI "Índice de Risco" (`sensor-monitor.tsx`), não
     // mais dentro do cabeçalho `alert-panel`.
     await expect(page.getByText("8.0%").first()).toBeVisible({
       timeout: 10_000,

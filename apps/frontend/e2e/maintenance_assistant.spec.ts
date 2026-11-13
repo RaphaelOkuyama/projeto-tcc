@@ -31,7 +31,8 @@ import { test, expect, type Page } from "@playwright/test";
 
 const EQUIPMENT_NAME = "Bomba Centrífuga CX-500";
 const SYMPTOM = "ruído excessivo na sucção";
-const CRITICAL_PROBABILITY = "0.9";
+// O formulário recebe o índice de risco em % (0–100).
+const CRITICAL_PROBABILITY = "90";
 
 async function gotoAndWaitMsw(page: Page, path = "/"): Promise<void> {
   await page.goto(path);
@@ -72,7 +73,7 @@ async function submitSuggestion(
   const symptomInput = page.getByLabel("Sintoma observado");
   await symptomInput.fill(overrides.symptom ?? SYMPTOM);
 
-  const probabilityInput = page.getByLabel("Probabilidade de falha");
+  const probabilityInput = page.getByLabel("Índice de risco (%)");
   await probabilityInput.fill(overrides.probability ?? CRITICAL_PROBABILITY);
 
   await page.getByRole("button", { name: /gerar sugestão/i }).click();
@@ -95,7 +96,7 @@ test.describe("Assistente de Manutenção — abertura (RF-22/23)", () => {
     ).toBeVisible();
     await expect(page.getByLabel("Equipamento")).toBeVisible();
     await expect(page.getByLabel("Sintoma observado")).toBeVisible();
-    await expect(page.getByLabel("Probabilidade de falha")).toBeVisible();
+    await expect(page.getByLabel("Índice de risco (%)")).toBeVisible();
     await expect(
       page.getByRole("button", { name: /gerar sugestão/i }),
     ).toBeVisible();
@@ -239,7 +240,7 @@ test.describe("Assistente de Manutenção — consulta e streaming (RF-23 / RNF-
     await gotoAndWaitMsw(page);
     await openAssistant(page);
 
-    await submitSuggestion(page, { probability: "0.5" });
+    await submitSuggestion(page, { probability: "50" });
 
     await expect(page.locator('[data-status="skipped"]')).toBeVisible({
       timeout: 10_000,

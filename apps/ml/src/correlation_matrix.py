@@ -103,7 +103,7 @@ def heatmap(corr: pd.DataFrame, title: str, path: Path) -> None:
             ax.text(j, i, text, ha="center", va="center", fontsize=7, color=ink)
     cbar = fig.colorbar(im, ax=ax, fraction=0.035, pad=0.02)
     cbar.set_label("Correlação de Pearson (r)", fontsize=9)
-    cbar.outline.set_visible(False)
+    cbar.ax.spines["outline"].set_visible(False)
     ax.set_title(title, fontsize=12, loc="left", pad=12)
     fig.tight_layout()
     fig.savefig(path, facecolor="#fcfcfb")

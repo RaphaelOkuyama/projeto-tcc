@@ -1,11 +1,8 @@
 "use client";
 
-// RNF-58: decomposto em `components/sensor-monitor/*` — cada sub-componente
-// (Sparkline, SparkKpiCard, MainAreaChart, BooleanPanel, OperationalDonut,
-// EventLog, PressureRadials, DegradedModeBanner, SensorMonitorHeader) mora em
-// seu próprio arquivo; este componente é só o orquestrador (busca dados via
-// hooks, decide o estado de risco, monta o layout). Nenhuma mudança de
-// comportamento/DOM/classe CSS — puro reposicionamento de código já existente.
+// RNF-58: cada sub-componente mora em `components/sensor-monitor/*`; este
+// arquivo é só o orquestrador (busca dados via hooks, decide o estado de
+// risco e monta o layout).
 
 import {
   AlertTriangle,

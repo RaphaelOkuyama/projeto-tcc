@@ -425,7 +425,12 @@ function sseStream(events: Array<{ event: string; data: unknown }>) {
         controller.enqueue(
           encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
         );
-        await new Promise((resolve) => setTimeout(resolve, 15));
+        // Busca (MCP) e geração (LLM) levam tempo real: segura "searching"
+        // por 500 ms e espaça os tokens em 60 ms (~1 s de "generating" para um
+        // plano de ~20 linhas), para a UI e o E2E observarem cada estado.
+        const delayMs =
+          event === "searching" ? 500 : event === "token" ? 60 : 15;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
       controller.close();
     },
