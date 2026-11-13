@@ -29,6 +29,26 @@ interface MswProviderProps {
 
 const MSW_ENABLED = process.env.NEXT_PUBLIC_MSW_ENABLED === "true";
 
+// Uma única inicialização por página. No modo dev o React (StrictMode) roda o
+// efeito duas vezes; a segunda chamada a `worker.start()` resolve na hora
+// ("redundant worker.start()") e liberava os filhos antes de o worker
+// controlar a página — a primeira busca escapava para a rede real.
+let workerReady: Promise<void> | null = null;
+
+const startWorker = (): Promise<void> => {
+  workerReady ??= import("@/mocks/browser")
+    .then(({ worker }) =>
+      worker.start({
+        serviceWorker: { url: "/mockServiceWorker.js" },
+        // Silently bypass any request not covered by a handler
+        // (e.g. Next.js internal HMR, font requests).
+        onUnhandledRequest: "bypass",
+      }),
+    )
+    .then(() => undefined);
+  return workerReady;
+};
+
 export function MswProvider({ children }: MswProviderProps) {
   // Starts as `true` in production (MSW never enabled → always ready).
   // Starts as `false` in E2E so children aren't rendered until SW is up.
@@ -38,15 +58,7 @@ export function MswProvider({ children }: MswProviderProps) {
     if (!MSW_ENABLED) return;
 
     // Dynamic import keeps the MSW bundle out of the production chunk.
-    import("@/mocks/browser")
-      .then(({ worker }) =>
-        worker.start({
-          serviceWorker: { url: "/mockServiceWorker.js" },
-          // Silently bypass any request not covered by a handler
-          // (e.g. Next.js internal HMR, font requests).
-          onUnhandledRequest: "bypass",
-        }),
-      )
+    startWorker()
       .then(() => setReady(true))
       .catch((err) => {
         console.error("[MSW] Failed to start service worker:", err);

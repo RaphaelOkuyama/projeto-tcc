@@ -37,11 +37,12 @@ import time
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import asyncpg
 import numpy as np
 from sqlalchemy.dialects import postgresql
+from sqlalchemy import Table
 from sqlalchemy.schema import CreateIndex, CreateTable
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,7 +75,7 @@ RUNS = 30
 def _schema_sql() -> list[str]:
     dialect = postgresql.dialect()
     stmts: list[str] = []
-    for table in (Asset.__table__, Prediction.__table__):
+    for table in (cast(Table, Asset.__table__), cast(Table, Prediction.__table__)):
         stmts.append(str(CreateTable(table).compile(dialect=dialect)))
         stmts += [str(CreateIndex(ix).compile(dialect=dialect)) for ix in table.indexes]
     return stmts

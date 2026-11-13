@@ -134,7 +134,7 @@ test.describe("Alerta de falha crítica — RF-08 / RNF-17", () => {
 
     // Correção (pré-existente, não relacionada a MSW): o cabeçalho
     // imersivo (`alert-panel`) não exibe mais a probabilidade numérica —
-    // isso hoje é o KPI "Anomaly Score" (`{anomalyScoreStr}%`, mesma
+    // isso hoje é o KPI "Índice de Risco" (`{anomalyScoreStr}%`, mesma
     // fórmula: `(failure_probability * 100).toFixed(1)`).
     await expect(page.getByText("90.0%").first()).toBeVisible({
       timeout: 5_000,

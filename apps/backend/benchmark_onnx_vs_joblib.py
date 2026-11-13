@@ -59,7 +59,6 @@ import pandas as pd
 _HERE: Path = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 
-from src.core.config import settings  # noqa: E402
 from src.schemas.predict import PredictRequest  # noqa: E402
 from src.services.model_service import load_model_by_name  # noqa: E402
 
@@ -215,7 +214,7 @@ def _xgb_joblib_predict_one() -> Callable[[PredictRequest], float]:
     """
     import joblib
 
-    raw_model = joblib.load(settings.xgboost_model_path)
+    raw_model = joblib.load(_MODELS_DIR / "xgboost_v1.joblib")
     card = json.loads(
         (_MODELS_DIR / "xgboost_v1_card.json").read_text(encoding="utf-8")
     )

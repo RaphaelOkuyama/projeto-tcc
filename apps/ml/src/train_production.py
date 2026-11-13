@@ -112,7 +112,7 @@ def _export_deep(module: torch.nn.Module, sample: torch.Tensor, path: Path) -> f
     sample = sample.cpu()
     torch.onnx.export(
         module,
-        sample,
+        (sample,),
         str(path),
         input_names=["input"],
         output_names=["output"],

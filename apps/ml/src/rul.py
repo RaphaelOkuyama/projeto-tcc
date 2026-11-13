@@ -79,7 +79,9 @@ def survival_labels(
     end_t: np.datetime64 = (
         ts.max() if end is None else pd.Timestamp(end).to_datetime64()
     )
-    hours[~observed] = (end_t - ts[~observed]) / np.timedelta64(1, "h")
+    hours[~observed] = np.asarray(
+        end_t - ts[~observed], dtype="timedelta64[ns]"
+    ) / np.timedelta64(1, "h")
 
     lower: np.ndarray = np.maximum(hours, 1e-3)
     upper: np.ndarray = np.where(observed, lower, np.inf)

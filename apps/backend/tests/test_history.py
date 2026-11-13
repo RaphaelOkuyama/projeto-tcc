@@ -112,6 +112,7 @@ async def test_online_episodes(db: AsyncSession) -> None:
     ).all()
     assert len(events) == 2
     a, b = events
+    assert a.started_at is not None and a.ended_at is not None
     assert a.started_at.replace(tzinfo=timezone.utc) == T0 + timedelta(seconds=30)
     assert a.ended_at.replace(tzinfo=timezone.utc) == T0 + timedelta(
         seconds=100

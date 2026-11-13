@@ -72,7 +72,10 @@ def _req(
         equipment_name="Compressor de ar",
         symptom_description="queda de pressão",
         sensor_contributions=(
-            [SensorContribution(sensor=s, contribution=c) for s, c in contribs]
+            [
+                SensorContribution.model_validate({"sensor": s, "contribution": c})
+                for s, c in contribs
+            ]
             if contribs is not None
             else None
         ),
