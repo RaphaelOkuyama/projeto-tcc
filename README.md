@@ -17,17 +17,12 @@ um LLM **local** (Llama 3.2 3B no Ollama) — abstendo-se quando não encontra c
 
 ### 🎬 Demonstração em vídeo
 
-[![Demonstração do PredictIQ — clique para assistir](docs/apresentacao/demo-capa.jpg)](docs/apresentacao/demo-apresentacao.mp4)
+https://github.com/user-attachments/assets/978a0b31-dcd7-4d45-8331-f7e1e9105aa7
 
 O sistema de ponta a ponta em 3 minutos: sensores ao vivo, painel de simulação com falhas
 reais, detecção da falha e painel em estado crítico, histórico, assistente gerando o plano de
 reparo com IA local (RAG + MCP + Llama 3.2) e os alertas chegando no Telegram e no e-mail.
-Os trechos de espera estão acelerados (indicado no canto do vídeo). Clique na imagem para abrir
-o vídeo ([`docs/apresentacao/demo-apresentacao.mp4`](docs/apresentacao/demo-apresentacao.mp4)).
-
-> 📘 **Quer entender o TCC inteiro?** Leia o **[Guia Completo do TCC](GUIA_COMPLETO_TCC.md)**:
-> problema, dados, arquitetura, linguagens e onde cada uma é usada, cada método e por que foi
-> escolhido, walk-through de ponta a ponta, resultados, limitações e perguntas da banca.
+Os trechos de espera estão acelerados (indicado no canto do vídeo).
 
 ### Resultados em uma tabela
 
@@ -43,7 +38,6 @@ o vídeo ([`docs/apresentacao/demo-apresentacao.mp4`](docs/apresentacao/demo-apr
 
 ## Sumário
 
-0. [Guia Completo do TCC](GUIA_COMPLETO_TCC.md) *(documento à parte)*
 1. [Visão Geral](#1-visão-geral)
 2. [Stack Tecnológica](#2-stack-tecnológica)
 3. [Arquitetura do Monorepo](#3-arquitetura-do-monorepo)
@@ -122,8 +116,7 @@ Quatro aplicações em um monorepo, orquestradas pelo Docker Compose (16 serviç
 
 ## 2. Stack Tecnológica
 
-Versões conforme a monografia (Tabelas 5 a 9). Onde e por que cada linguagem é usada:
-[Guia Completo, §6](GUIA_COMPLETO_TCC.md#6-linguagens-e-tecnologias--onde-e-por-quê).
+Versões conforme a monografia (Tabelas 5 a 9).
 
 | Camada | Tecnologia | Versão | Responsabilidade |
 |---|---|---|---|
@@ -230,7 +223,6 @@ projeto-tcc/
 ├── docs/                           # relatórios de cada experimento, figuras-tcc/, pesquisa/
 ├── .github/workflows/ci.yml        # 11 tarefas: auditoria, lint, testes, mutação, E2E, carga
 ├── docker-compose.yml              # 16 serviços
-├── GUIA_COMPLETO_TCC.md            # explicação completa do TCC
 ├── DOCUMENTACAO_ARQUITETURAL_TCC.md
 ├── DIRETRIZES.md                       # diretrizes de código do projeto
 └── README.md
