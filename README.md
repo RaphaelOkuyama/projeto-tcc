@@ -15,6 +15,16 @@ Telegram e e-mail, registra eventos e ordens de serviço, e aciona um **assisten
 que consulta manuais técnicos via **MCP** (*Model Context Protocol*) e gera o plano de reparo com
 um LLM **local** (Llama 3.2 3B no Ollama) — abstendo-se quando não encontra contexto confiável.
 
+### 🎬 Demonstração em vídeo
+
+[![Demonstração do PredictIQ — clique para assistir](docs/apresentacao/demo-capa.jpg)](docs/apresentacao/demo-apresentacao.mp4)
+
+O sistema de ponta a ponta em 3 minutos: sensores ao vivo, painel de simulação com falhas
+reais, detecção da falha e painel em estado crítico, histórico, assistente gerando o plano de
+reparo com IA local (RAG + MCP + Llama 3.2) e os alertas chegando no Telegram e no e-mail.
+Os trechos de espera estão acelerados (indicado no canto do vídeo). Clique na imagem para abrir
+o vídeo ([`docs/apresentacao/demo-apresentacao.mp4`](docs/apresentacao/demo-apresentacao.mp4)).
+
 > 📘 **Quer entender o TCC inteiro?** Leia o **[Guia Completo do TCC](GUIA_COMPLETO_TCC.md)**:
 > problema, dados, arquitetura, linguagens e onde cada uma é usada, cada método e por que foi
 > escolhido, walk-through de ponta a ponta, resultados, limitações e perguntas da banca.
