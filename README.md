@@ -38,6 +38,7 @@ Os trechos de espera estão acelerados (indicado no canto do vídeo).
 
 ## Sumário
 
+0. [Demonstração em vídeo](#-demonstração-em-vídeo)
 1. [Visão Geral](#1-visão-geral)
 2. [Stack Tecnológica](#2-stack-tecnológica)
 3. [Arquitetura do Monorepo](#3-arquitetura-do-monorepo)
