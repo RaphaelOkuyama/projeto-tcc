@@ -7,7 +7,7 @@ FastAPI responde 422 automaticamente. O banco reforça o mesmo intervalo via
 CHECK constraint (`models/alert_settings.py`) como segunda linha de defesa.
 
 `alert_email` usa `EmailStr` (via `email-validator`, já dependência do
-projeto) — mesma regra de "não inventar uma regex própria" do enunciado da
+projeto) — mesma regra de "não inventar uma regex própria" do requisito da
 task. `email_enabled=true` sem `alert_email` é rejeitado por um
 `model_validator` — o banco reforça a mesma regra via CHECK constraint.
 """

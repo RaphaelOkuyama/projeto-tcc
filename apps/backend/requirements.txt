@@ -82,7 +82,7 @@ prometheus-fastapi-instrumentator==8.1.0
 # de PSI foi reimplementado com numpy/pandas (ja dependencias abaixo/deste
 # arquivo, nenhuma nova) em `drift_monitor.py::_population_stability_index`
 # -- replica fiel do algoritmo do evidently, validada bit-a-bit contra ele.
-# Ver docstring de drift_monitor.py e PENDENCIAS.md para o historico
+# Ver docstring de drift_monitor.py para o historico
 # completo.
 
 # Autenticação / RBAC (IEC 62443 FR1/FR2) — já presentes como dependências

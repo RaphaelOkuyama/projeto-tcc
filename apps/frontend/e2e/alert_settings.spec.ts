@@ -3,9 +3,9 @@
  *
  * Convenção de arquivo: segue `apps/frontend/e2e/*.spec.ts` (padrão real do
  * projeto — ver nota equivalente em `maintenance_assistant.spec.ts`), não o
- * caminho `apps/frontend/tests/...` sugerido no enunciado.
+ * caminho `apps/frontend/tests/...`.
  *
- * Autenticação (item 19 do enunciado): auditado — `lib/api-client.ts` NUNCA
+ * Autenticação: auditado — `lib/api-client.ts` NUNCA
  * envia `X-Admin-Token` em nenhuma chamada (nem em produção). A proteção real
  * do backend depende do modo dev do RF-11 (token default = auth desativada).
  * Não há nada para mockar do lado do browser — nenhuma autenticação paralela

@@ -3,7 +3,7 @@
 > Protocolo definido **antes** da busca. A execução nas bases exige acesso
 > institucional (Scopus, IEEE Xplore, Web of Science, ACM DL) e fica a cargo
 > do autor; este arquivo fixa as decisões para que a revisão seja
-> reprodutível e auditável pela banca.
+> reprodutível e auditável.
 
 ## 1. Perguntas da revisão
 

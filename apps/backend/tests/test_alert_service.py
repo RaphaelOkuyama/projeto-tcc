@@ -1,7 +1,7 @@
 """
 Testes de `AlertService` (RF-14/RF-24, RNF-64/RNF-65).
 
-Auditoria inicial:nenhum arquivo dedicado existia — `AlertService` só
+Auditoria inicial: nenhum arquivo dedicado existia — `AlertService` só
 era exercitado indiretamente (`test_full_pipeline.py`,
 `test_inference_pipeline.py`) com asserções parciais (`payload["probability"]`
 apenas), nunca o dict completo nem os defaults quando campos opcionais do

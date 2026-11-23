@@ -47,7 +47,7 @@ from src.services.sensor_stream_service import (
 # ("Fresh, isolated SensorStreamService for every test"), que carrega o
 # parquet MetroPT-3 (gitignored, *.parquet — não disponível num checkout
 # limpo de CI). Mesma situação, mesmo motivo, de test_simulator.py (RF-13),
-# já excluído da suíte geral por esse motivo — ver README/PENDENCIAS.md.
+# já excluído da suíte geral por esse motivo — ver README.
 pytestmark = pytest.mark.skipif(
     not settings.simulator_parquet_path.exists(),
     reason=(

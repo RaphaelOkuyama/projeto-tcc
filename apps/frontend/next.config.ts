@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
 // misconfiguration"). Por isso o wrapper só é aplicado quando ANALYZE=true
 // é setado explicitamente — o `pnpm build` padrão (Turbopack, usado em
 // produção) nunca vê essa config; só uma invocação diagnóstica dedicada
-// (`ANALYZE=true pnpm build --webpack`, ver README/RELATORIO-RNF-74-RNF-75.md)
+// (`ANALYZE=true pnpm build --webpack`, ver README)
 // usa o analyzer, com `--webpack` forçando o único bundler que o plugin
 // suporta.
 export default process.env.ANALYZE === "true"

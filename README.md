@@ -536,7 +536,7 @@ flowchart LR
     style MCP stroke-dasharray: 3 3
 ```
 
-> A seta tracejada `API -.-> MCP` existe só para mostrar a URL **configurada** (`MCP_SERVER_URL`) — o backend **não faz** essa chamada ainda (ver Known Issues/estado atual abaixo). Não é roteado pelo Nginx: é alcançado só pela rede interna Docker (`http://mcp-server:8100`), como `db`/`mlflow`.
+> A seta tracejada `API -.-> MCP` existe só para mostrar a URL **configurada** (`MCP_SERVER_URL`) — o backend **não faz** essa chamada nesta etapa (ver Known Issues/estado atual abaixo). Não é roteado pelo Nginx: é alcançado só pela rede interna Docker (`http://mcp-server:8100`), como `db`/`mlflow`.
 
 | Aspecto | Valor real |
 |---|---|
@@ -601,7 +601,7 @@ Resposta real (capturada via chamada MCP de verdade — ver "Validação ponta-a
 
 #### Por que cosine similarity, não a distância L2 bruta do vector store
 
-O `vector_store.py` ordena candidatos por distância L2 ao quadrado sobre os embeddings brutos, não normalizados (mesma métrica que o `chromadb` usava por default, antes de ser removido — RNF-62, ver §17.1). Medido contra o corpus real, essa distância fica em ~15–50 e uma conversão ingênua (`1/(1+distancia)`, fórmula padrão para espaços L2) nunca passava de `~0.07` — o threshold `> 0.6` da RF-21 rejeitaria **toda** consulta, por mais relevante que fosse. Corrigido calculando a cosine similarity diretamente a partir dos embeddings brutos (query + candidatos, este último obtido via `collection.query(..., include=["embeddings"])`) — invariante à norma dos vetores, portanto insensível a essa característica do modelo. A pré-seleção por L2 continua usada só para obter os candidatos de forma eficiente; o score que decide o filtro é sempre a cosine similarity. Ver docstring de [`semantic_search.py`](apps/mcp-server/semantic_search.py) para a investigação completa.
+O `vector_store.py` ordena candidatos por distância L2 ao quadrado sobre os embeddings brutos, não normalizados (mesma métrica que o `chromadb` usava por default, antes de ser removido na RNF-62, ver §17.1). Medido contra o corpus real, essa distância fica em ~15–50 e uma conversão ingênua (`1/(1+distancia)`, fórmula padrão para espaços L2) nunca passava de `~0.07` — o threshold `> 0.6` da RF-21 rejeitaria **toda** consulta, por mais relevante que fosse. Corrigido calculando a cosine similarity diretamente a partir dos embeddings brutos (query + candidatos, este último obtido via `collection.query(..., include=["embeddings"])`) — invariante à norma dos vetores, portanto insensível a essa característica do modelo. A pré-seleção por L2 continua usada só para obter os candidatos de forma eficiente; o score que decide o filtro é sempre a cosine similarity. Ver docstring de [`semantic_search.py`](apps/mcp-server/semantic_search.py) para a investigação completa.
 
 #### Como iniciar
 
@@ -779,7 +779,7 @@ flowchart TD
 | Cliente MCP | `MCPSearchClient` (`apps/backend/src/services/mcp_client.py`) — SDK oficial `mcp` (mesmo pacote do mcp-server), transporte `streamable-http`, `initialize` → `call_tool` |
 | Modelo Ollama | `OLLAMA_MODEL` — default `llama3.2:3b` (Llama 3.2 3B) |
 | Cliente Ollama | `OllamaClient` (`apps/backend/src/services/ollama_client.py`) — HTTP puro via `httpx` (já dependência do backend) contra `POST {OLLAMA_BASE_URL}/api/chat`, `stream: false` |
-| Processamento local (RNF-46) | Nenhuma chamada a APIs externas de LLM — `OLLAMA_BASE_URL` aponta para o Ollama do host (`host.docker.internal`, resolvido nativamente pelo Docker Desktop, **sem** `extra_hosts`) |
+| Processamento local (RNF-46) | Nenhuma chamada a API externa de LLM — `OLLAMA_BASE_URL` aponta para o Ollama do host (`host.docker.internal`, resolvido nativamente pelo Docker Desktop, **sem** `extra_hosts`) |
 | Vector store | Reaproveitado — **nenhum segundo store criado**. O backend nunca fala com o vector store diretamente, só via MCP (ver "Decisão de arquitetura" abaixo) |
 
 #### Exemplo — requisição/resposta reais
@@ -823,7 +823,7 @@ O System Prompt (constante `SYSTEM_PROMPT` em `maintenance_suggestion_service.py
 
 #### Decisão de arquitetura — sem segundo vetor store
 
-A especificação menciona `chromadb`/`CHROMADB_HOST`/porta `8001:8000` como possíveis requisitos de infraestrutura. **Não foram criados** — o vetor store já existe, persistido e funcional, dentro de `apps/mcp-server` (RF-20/RF-21; desde a RNF-62 é o [`vector_store.py`](apps/mcp-server/vector_store.py) local, não mais o pacote `chromadb`). Criar uma segunda instância exigiria: (a) decidir qual delas é a fonte de verdade, (b) migrar/reindexar os dados, (c) manter as duas sincronizadas — duas fontes de verdade sem benefício real, já que o backend só precisa de **busca**, não de acesso direto ao vetor store. O backend fala com o vetor store **exclusivamente através do MCP** (`search_maintenance_manual`), preservando a separação de responsabilidades da RF-19/RNF-43 (MCP como domínio próprio, backend como consumidor). Nenhuma dependência de busca/embeddings foi adicionada a `apps/backend/requirements.txt` — continuam exclusivas do mcp-server.
+**Não há um ChromaDB separado** (`chromadb`/`CHROMADB_HOST`/porta `8001:8000`): o vetor store já existe, persistido e funcional, dentro de `apps/mcp-server` (RF-20/RF-21; desde a RNF-62 é o [`vector_store.py`](apps/mcp-server/vector_store.py) local, não mais o pacote `chromadb`). Criar uma segunda instância exigiria: (a) decidir qual delas é a fonte de verdade, (b) migrar/reindexar os dados, (c) manter as duas sincronizadas — duas fontes de verdade sem benefício real, já que o backend só precisa de **busca**, não de acesso direto ao vetor store. O backend fala com o vetor store **exclusivamente através do MCP** (`search_maintenance_manual`), preservando a separação de responsabilidades da RF-19/RNF-43 (MCP como domínio próprio, backend como consumidor). Nenhuma dependência de busca/embeddings foi adicionada a `apps/backend/requirements.txt` — continuam exclusivas do mcp-server.
 
 #### Testes
 
@@ -968,7 +968,7 @@ flowchart TD
 | `MAINTENANCE_SUGGESTION_THRESHOLD` (RF-22) | `0.70` | `apps/backend/src/services/maintenance_suggestion_service.py` |
 | `CRITICAL_FAILURE_THRESHOLD` (RF-24) | **`0.85`** (nível de risco quando há limiar do modelo; probabilidade bruta sem ele) | `apps/backend/src/services/critical_failure_notification_service.py` |
 
-As três constantes têm o mesmo valor numérico só por coincidência em dois casos — cada task pediu explicitamente uma constante própria, não reutilização. `probability == 0.85` exato **não** dispara (regra estrita `>`), validado em `test_notifications.py` com os quatro valores do critério de aceite (`0.0`/`0.5`/`0.84`/`0.85` → nunca chama o adapter; `0.8501`/`0.90`/`0.9999` → sempre chama).
+As três constantes têm o mesmo valor numérico só por coincidência em dois casos — cada requisito tem a sua constante própria, sem reutilização. `probability == 0.85` exato **não** dispara (regra estrita `>`), validado em `test_notifications.py` com os quatro valores do critério de aceite (`0.0`/`0.5`/`0.84`/`0.85` → nunca chama o adapter; `0.8501`/`0.90`/`0.9999` → sempre chama).
 
 #### Rate limiting — por que Postgres, não Redis
 
@@ -987,7 +987,7 @@ Tudo em uma única instrução SQL — sem "ler o valor, decidir em Python, escr
 
 Implementação dialect-aware: `sqlalchemy.dialects.postgresql.insert` em produção, `sqlalchemy.dialects.sqlite.insert` nos testes (mesmo `ON CONFLICT` funciona nos dois) — selecionado em runtime via `db.get_bind().dialect.name`, o que permite testar o **mesmo código** contra SQLite em memória (`StaticPool`, para todas as conexões da suíte de teste compartilharem o mesmo `:memory:`) e contra o Postgres real de produção sem nenhum branch condicional na lógica de negócio.
 
-**Limitações conhecidas desta abordagem**: (a) o lock não é liberado automaticamente por um processo de limpeza (linhas expiradas só somem quando um novo `try_acquire` do mesmo equipamento roda o `UPSERT` — em prática nunca acumula mais que 1 linha por equipamento, então não é um vazamento real); (b) diferente de um TTL nativo do Redis, a expiração aqui é **verificada na leitura** (`WHERE expires_at <= now`), não expurgada em background — irrelevante para o volume atual (1 linha por ativo simulado), mas não escalaria da mesma forma para milhares de equipamentos sem um índice dedicado em `expires_at` (não criado — não necessário no volume atual).
+**Limitações conhecidas desta abordagem**: (a) o lock não é liberado automaticamente por um processo de limpeza (linhas expiradas só somem quando um novo `try_acquire` do mesmo equipamento roda o `UPSERT` — em prática nunca acumula mais que 1 linha por equipamento, então não é um vazamento real); (b) diferente de um TTL nativo do Redis, a expiração aqui é **verificada na leitura** (`WHERE expires_at <= now`), não expurgada em background — irrelevante para o volume atual (1 linha por ativo simulado), mas não escalaria da mesma forma para milhares de equipamentos sem um índice dedicado em `expires_at` (não necessário no volume atual).
 
 #### Injeção de relógio para testes determinísticos
 
@@ -1049,9 +1049,9 @@ Cobre: `TelegramNotificationAdapter` (sucesso, config ausente, timeout, HTTP nã
 
 **O que é**: uma página (`apps/frontend/app/settings/alerts`) onde o operador ajusta, via slider, o limiar que dispara a notificação crítica (RF-24) e liga/desliga cada **canal de notificação** — Telegram e/ou e-mail (via [Resend](https://resend.com)) — sem precisar editar `.env`/reiniciar o backend. Um botão **Testar Notificação** valida os canais habilitados sem depender de uma predição real.
 
-> **Configuração GLOBAL, não por usuário.** O projeto não possui nenhum sistema de autenticação/usuários (auditado explicitamente — só existe o token de admin compartilhado do RF-11, binário, sem identidade individual). Por isso `alert_settings` é uma tabela **singleton** (uma única linha para o sistema inteiro), protegida pelo mesmo `X-Admin-Token` já usado por `/models` — nenhuma autenticação nova foi criada.
+> **Configuração GLOBAL, não por usuário.** O projeto não possui nenhum sistema de autenticação/usuários (só existe o token de admin compartilhado do RF-11, binário, sem identidade individual). Por isso `alert_settings` é uma tabela **singleton** (uma única linha para o sistema inteiro), protegida pelo mesmo `X-Admin-Token` já usado por `/models` — nenhuma autenticação nova foi criada.
 
-> **E-mail é um canal novo.** Auditoria explícita antes desta mudança confirmou que **nenhuma integração de e-mail existia no projeto** (nem Resend, nem SMTP, nem qualquer outro provedor) — o `EmailNotificationAdapter` introduzido aqui é o primeiro canal de e-mail do PredictIQ, não uma reintegração de algo já existente.
+> **E-mail é um canal novo.** Antes do RF-25, **nenhuma integração de e-mail existia no projeto** (nem Resend, nem SMTP, nem qualquer outro provedor) — o `EmailNotificationAdapter` introduzido aqui é o primeiro canal de e-mail do PredictIQ, não uma reintegração de algo já existente.
 
 ```mermaid
 flowchart TD
@@ -1074,7 +1074,7 @@ flowchart TD
 
 **Escala do slider — risco relativo ao modelo ativo.** Cada modelo tem o próprio limiar calibrado (MLP 0,06 … XGBoost 0,98), então uma probabilidade bruta fixa (85 %) nunca era atingida por modelos de limiar baixo e o aviso crítico não saía. O valor configurado é um **nível de risco** na mesma escala do painel (`apps/backend/src/core/risk.py` e `apps/frontend/lib/risk-thresholds.ts`): `risco = 0,65·p/limiar` abaixo do limiar e `0,65 + 0,35·(p − limiar)/(1 − limiar)` acima. **65 % = o modelo decide falha** (o painel mostra CRÍTICO); 85 % exige evidência mais forte; 50 % ainda notifica na faixa de ALERTA. A tela mostra a probabilidade equivalente para o modelo ativo (ex.: Random Forest v3, limiar 0,694 → 85 % ≈ P ≥ 0,87, próximo da regra antiga). Recomendado: **65 %** quando o modelo ativo é uma rede (MLP/BiLSTM/PatchTST/TCN). Sem limiar do modelo (chamadas antigas), vale a regra original `probability > nível`.
 
-O slider (`0.5`–`0.95`) configura o **mesmo limiar de falha crítica do RF-24** (`CRITICAL_FAILURE_THRESHOLD`) — não um novo tipo de alerta. Essa decisão vem diretamente do requisito (que amarra o RF-25 ao `CRITICAL_FAILURE_THRESHOLD = 0.85` do RF-24 e manda preservar `0.85` como default) e do fato de o botão "Testar Notificação" só fazer sentido para os canais Telegram/e-mail. `CriticalFailureNotificationService._resolve_settings()` agora lê `AlertSettingsService.get_settings()` a cada predição: usa o valor salvo (threshold + canais) se existir, ou os defaults do RF-24 (`0.85`, Telegram ligado, e-mail desligado) se nunca configurado — o comportamento do RF-14 (alerta WebSocket, `ALERT_PROBABILITY_THRESHOLD = 0.70`) **não é afetado**.
+O slider (`0.5`–`0.95`) configura o **mesmo limiar de falha crítica do RF-24** (`CRITICAL_FAILURE_THRESHOLD`) — não um novo tipo de alerta. Essa decisão vem do requisito (o RF-25 é amarrado ao `CRITICAL_FAILURE_THRESHOLD = 0.85` do RF-24, com `0.85` como default) e do fato de o botão "Testar Notificação" só fazer sentido para os canais Telegram/e-mail. `CriticalFailureNotificationService._resolve_settings()` agora lê `AlertSettingsService.get_settings()` a cada predição: usa o valor salvo (threshold + canais) se existir, ou os defaults do RF-24 (`0.85`, Telegram ligado, e-mail desligado) se nunca configurado — o comportamento do RF-14 (alerta WebSocket, `ALERT_PROBABILITY_THRESHOLD = 0.70`) **não é afetado**.
 
 #### Banco — singleton real, não "combinado por convenção"
 
@@ -1125,7 +1125,7 @@ Testa exatamente os canais habilitados na configuração **já salva** (não o r
 
 Rate limiter **separado** do de falha crítica: mesma classe `TelegramAlertRateLimiter`, mesma tabela `telegram_alert_locks`, mas uma instância com TTL de 10s (só anti-duplo-clique) e uma chave reservada (`__settings_notification_test__`) que nunca colide com um `equipment_id` real — um clique manual não pode consumir a janela de 15 min que protegeria um alerta crítico genuíno do mesmo equipamento logo em seguida. Uma falha do teste libera o lock imediatamente (permite corrigir a configuração e tentar de novo sem esperar); `TELEGRAM_BOT_TOKEN`/`RESEND_API_KEY` nunca aparecem na resposta HTTP nem em log.
 
-#### Variáveis de ambiente — Resend (novas)
+#### Variáveis de ambiente — Resend
 
 | Variável | Obrigatória | Default | Descrição |
 |---|---|---|---|
@@ -1158,7 +1158,7 @@ Executado contra o ambiente real (Postgres real, backend real, frontend real, vi
 
 **O que é**: o ENVIO real das notificações críticas (RF-24/RF-25 — as chamadas de rede ao Telegram/Resend, que podem levar segundos ou dar timeout) deixou de acontecer dentro do caminho síncrono da inferência. `CriticalFailureNotificationService.notify_if_critical()` continua decidindo se dispara (threshold) e adquirindo o rate limit (Postgres, atômico, inalterado) — mas em vez de chamar os adapters diretamente, **enfileira** um payload serializável via Celery e retorna imediatamente. O envio de fato acontece depois, num processo separado (`celery-worker`), consumindo da fila via Redis.
 
-> **Auditoria antes desta mudança**: nenhum Celery/Redis existia no projeto. O rate limiter do RF-24 usa Postgres deliberadamente (ver §4.10) — este Redis é **só o broker do Celery**, nunca um substituto do Postgres nem de nenhum outro dado do domínio.
+> **Antes desta mudança**, nenhum Celery/Redis existia no projeto. O rate limiter do RF-24 usa Postgres deliberadamente (ver §4.10) — este Redis é **só o broker do Celery**, nunca um substituto do Postgres nem de nenhum outro dado do domínio.
 
 ```mermaid
 flowchart TD
@@ -1220,7 +1220,7 @@ Executado contra `docker compose up -d redis celery-worker api` real: `celery-wo
 
 **Prova de não bloqueio contra o pipeline de produção real** (não só o teste automatizado): chamado `get_alert_service().process_prediction({"probability": 0.93, ...})` — o singleton REAL, com Postgres e Redis reais — `process_prediction` retornou em **94.4 ms**; o envio (que falhou por falta de token, como esperado) aconteceu depois, no log do `celery-worker`, em processo totalmente separado.
 
-**Telegram/Resend reais não foram testados** — mesma limitação já documentada no RF-24/RF-25 (nenhuma credencial real neste ambiente). O objetivo — provar `producer -> Redis -> celery-worker -> task` e o desacoplamento do caminho de inferência — foi validado de ponta a ponta com infraestrutura 100% real.
+**Telegram/Resend reais não foram testados** — mesma limitação já documentada no RF-24/RF-25 (nenhuma credencial real neste ambiente). O fluxo `producer -> Redis -> celery-worker -> task` e o desacoplamento do caminho de inferência foram validados de ponta a ponta com infraestrutura 100% real.
 
 #### Limitações conhecidas
 
@@ -1254,7 +1254,7 @@ flowchart TD
 
 `SemanticSearchService`/vetor store vivem em `apps/mcp-server` — pacote Python e container Docker inteiramente separados de `apps/backend`, sem `sentence-transformers`/`torch` (nem, antes da RNF-62, `chromadb`) nas dependências do backend (confirmado — nada disso está instalado no container `api`). O backend só fala com o MCP pela rede (`MCPSearchClient`, protocolo streamable-http), nunca em processo. Mockar em `MCPSearchClient.search_maintenance_manual()` é o **menor ponto de integração real** — a fronteira que `MaintenanceSuggestionService` de fato usa — evitando tanto reimplementar a lógica de cosine similarity (duplicação de produção) quanto inflar o backend com uma dependência pesada só para um teste (mesma classe de problema já documentada para o `mcp-server` no §14 "Limitações conhecidas" do torch/CUDA).
 
-A cobertura real e determinística da busca semântica com um vetor store efêmero — a que os itens 3-5 do requisito pediam — já existe em `apps/mcp-server/tests/test_semantic_search.py` (RF-21) e foi **estendida** nesta mesma task com `test_distinguishes_pump_motor_and_irrelevant_queries_deterministically`: um modelo de embeddings fake mas sensível ao conteúdo (ao contrário do `_FixedVectorModel` original, que ignora o texto) prova, com um vetor store real em diretório temporário, que uma consulta sobre bomba recupera só o manual de bomba, uma sobre motor só o de motor, e uma irrelevante não recupera nada.
+A cobertura real e determinística da busca semântica com um vetor store efêmero já existe em `apps/mcp-server/tests/test_semantic_search.py` (RF-21) e foi **estendida** com `test_distinguishes_pump_motor_and_irrelevant_queries_deterministically`: um modelo de embeddings fake mas sensível ao conteúdo (ao contrário do `_FixedVectorModel` original, que ignora o texto) prova, com um vetor store real em diretório temporário, que uma consulta sobre bomba recupera só o manual de bomba, uma sobre motor só o de motor, e uma irrelevante não recupera nada.
 
 #### RF-26 — limite de 5 segundos
 
@@ -1262,7 +1262,7 @@ Medido com `time.perf_counter()` no teste principal (`test_full_pipeline_critica
 
 #### RNF-52 — determinismo
 
-Sem `random`/`uuid4` sem controle, sem `datetime.now()` nas entradas do teste (timestamps/queries/scores fixos), sem download de modelo, sem Ollama/MCP/Telegram/Resend/Redis/Postgres reais. `AlertService.process_prediction` (código de produção, inalterado) gera internamente um `message_id` (`uuid4()`) e um timestamp de servidor (`datetime.now()`) — nenhuma asserção do teste depende do valor exato desses dois campos: RNF-52 exige que as **entradas** do teste sejam determinísticas, não que código de produção pré-existente pare de usar relógio/uuid real internamente. Executado duas vezes em sequência durante a validação — resultado idêntico (7 passed) nas duas.
+Sem `random`/`uuid4` sem controle, sem `datetime.now()` nas entradas do teste (timestamps/queries/scores fixos), sem download de modelo, sem Ollama/MCP/Telegram/Resend/Redis/Postgres reais. `AlertService.process_prediction` (código de produção, inalterado) gera internamente um `message_id` (`uuid4()`) e um timestamp de servidor (`datetime.now()`) — nenhuma asserção do teste depende do valor exato desses dois campos: RNF-52 exige que as **entradas** do teste sejam determinísticas, não que código de produção pré-existente pare de usar relógio/uuid real internamente. Executado duas vezes em sequência — resultado idêntico (7 passed) nas duas.
 
 #### Fallbacks testados
 
@@ -1274,7 +1274,7 @@ Sem `random`/`uuid4` sem controle, sem `datetime.now()` nas entradas do teste (t
 | Predição abaixo de RF-14/RF-22 (0.65) | Nem WS, nem MCP, nem LLM, nem enqueue |
 | Predição entre RF-22 (0.70) e RF-24 (0.85) — ex. 0.80 | **Sugestão de manutenção DISPARA** (MCP/LLM chamados), mas a notificação crítica **não é enfileirada** — prova de que os dois limiares são realmente independentes (ver nota de auditoria abaixo) |
 
-> **Nota sobre o valor `0.80`**: o requisito usa `0.80` como exemplo de "abaixo do threshold" partindo da premissa de um único limiar para todo o pipeline. A auditoria confirmou que RF-22 (`MAINTENANCE_SUGGESTION_THRESHOLD = 0.70`) e RF-24 (`CRITICAL_FAILURE_THRESHOLD = 0.85`) são constantes independentes (documentado desde o RF-24). O teste reflete o comportamento real do projeto em vez de forçar a premissa do enunciado.
+> **Nota sobre o valor `0.80`**: `0.80` não serve como exemplo de "abaixo do threshold" para o pipeline inteiro, porque não existe um limiar único: RF-22 (`MAINTENANCE_SUGGESTION_THRESHOLD = 0.70`) e RF-24 (`CRITICAL_FAILURE_THRESHOLD = 0.85`) são constantes independentes (documentado desde o RF-24). O teste reflete esse comportamento real.
 
 #### Celery — enqueue validado com a task real
 
@@ -1286,17 +1286,17 @@ Sem `random`/`uuid4` sem controle, sem `datetime.now()` nas entradas do teste (t
 docker compose exec api pytest tests/test_full_pipeline.py -v   # 7 testes
 ```
 
-Adicionado como step isolado no job `test-python` existente do `.github/workflows/ci.yml` (não um workflow novo) — **não** reabilita o step geral de `pytest` daquele job, que segue comentado desde a criação do CI (fora do escopo: reabilitá-lo exigiria provisionar Postgres no runner para as dezenas de testes pré-existentes que dependem dele, um trabalho maior e não relacionado). `test_full_pipeline.py` é 100% determinístico e não depende de nenhum serviço externo, então é seguro rodá-lo isoladamente no CI hoje.
+Adicionado como step isolado no job `test-python` existente do `.github/workflows/ci.yml` (não um workflow novo) — **não** reabilita o step geral de `pytest` daquele job, que segue comentado desde a criação do CI (reabilitá-lo exigiria provisionar Postgres no runner para as dezenas de testes pré-existentes que dependem dele, um trabalho maior e não relacionado). `test_full_pipeline.py` é 100% determinístico e não depende de nenhum serviço externo, então é seguro rodá-lo isoladamente no CI hoje.
 
 ### 4.14. Cobertura E2E/visual — Assistente de Manutenção e Configurações de Alertas (RNF-53 / RNF-54)
 
 **O que é**: dois specs Playwright que exercitam a aplicação como um usuário real (clicar, preencher, observar loading/streaming/erro) contra os dois painéis construídos nas tasks anteriores — o Assistente de Manutenção (RF-22/23) e a página `/settings/alerts` (RF-25) — usando o Playwright + MSW **já existentes** no projeto (`playwright.config.ts`, `apps/frontend/e2e/`, `mocks/handlers.ts`, `MswProvider`), reutilizados e estendidos, não recriados.
 
-> **Convenção de arquivo**: o requisito sugere `apps/frontend/tests/*.spec.ts`, mas o projeto já usa `apps/frontend/e2e/*.spec.ts` (`dashboard_flow.spec.ts`, `failure_alert.spec.ts`, RNF-16/17) — os dois novos specs seguem a convenção REAL já estabelecida.
+> **Convenção de arquivo**: o projeto usa `apps/frontend/e2e/*.spec.ts` (`dashboard_flow.spec.ts`, `failure_alert.spec.ts`, RNF-16/17) — os dois specs seguem essa convenção.
 
 #### Fronteiras mockadas (RNF-54)
 
-O requisito menciona provedor externo, mas o projeto **nunca usou provedor externo** — confirmado por busca em todo o repositório (a única menção existente é uma negação explícita no docstring de `ollama_client.py`: *"nenhuma chamada a APIs externas de LLM"*). A integração de LLM real é o **Ollama local** (Llama 3.2 3B, RF-22/RNF-46), consumida via streaming SSE (`fetch` + `ReadableStream`, RF-23/RNF-47). A fronteira mockada por MSW é exatamente essa — `POST /v1/maintenance/suggest/stream` — não uma integração provedor externo inventada. Telegram (RF-24) e e-mail/Resend (RF-25) — as integrações de notificação que o enunciado também menciona — **já existem de verdade** no projeto e foram mockadas em suas fronteiras reais (`POST /v1/settings/alerts/test`), sem substituição por nada diferente.
+A integração de LLM é o **Ollama local** (Llama 3.2 3B, RF-22/RNF-46), consumida via streaming SSE (`fetch` + `ReadableStream`, RF-23/RNF-47). A fronteira mockada por MSW é exatamente essa: `POST /v1/maintenance/suggest/stream`. Telegram (RF-24) e e-mail/Resend (RF-25) também foram mockados nas suas fronteiras reais (`POST /v1/settings/alerts/test`).
 
 #### Endpoints reais interceptados (`mocks/handlers.ts`)
 
@@ -1324,13 +1324,11 @@ flowchart TD
 
 > **Achado de arquitetura**: o Dashboard e o Assistente **não compartilham dados automaticamente** — confirmado lendo `SuggestionForm`: valores default fixos, nunca derivados do alerta ativo. O teste reflete essa realidade real do produto (detecta no Dashboard, abre o Assistente — disponível globalmente via Sidebar —, informa manualmente os dados do mesmo equipamento) em vez de inventar um data-binding que não existe.
 
-"Reconhecimento" (item 9), definido pelo comportamento REAL da UI, não um componente novo: heading "Diagnóstico provável" + texto citando o equipamento + referência do manual (`bomba-centrifuga-cx500.pdf`, página 4, score 0.82) em `data-testid="maintenance-references"` — um `data-testid` novo adicionado ao `ReferencesList` (única mudança de produção: um atributo, zero mudança de comportamento) porque o nome do arquivo aparece legitimamente duas vezes na tela (no Markdown gerado pelo LLM E na lista estruturada de metadados) — dois locators de texto válidos, não uma falha de acessibilidade.
+"Reconhecimento" (item 9), definido pelo comportamento REAL da UI, não um componente novo: heading "Diagnóstico provável" + texto citando o equipamento + referência do manual (`bomba-centrifuga-cx500.pdf`, página 4, score 0.82) em `data-testid="maintenance-references"` — um `data-testid` novo adicionado ao `ReferencesList` (um atributo, sem mudança de comportamento) porque o nome do arquivo aparece legitimamente duas vezes na tela (no Markdown gerado pelo LLM E na lista estruturada de metadados) — dois locators de texto válidos, não uma falha de acessibilidade.
 
-#### Achado — pré-existente, corrigido numa task posterior
+#### Achado — integração MSW/Playwright do Dashboard
 
-O PRIMEIRO passo do teste RNF-53 (banner crítico do Dashboard) depende do mesmo mecanismo de `/api/stream/sensors`/`/api/v1/predictions` que os specs **já existentes** `failure_alert.spec.ts`/`dashboard_flow.spec.ts` usam. Ao validar esta task, reproduzi esses DOIS specs pré-existentes (sem alterar nenhuma linha deles) num ambiente isolado e limpo (container Playwright oficial, Node 20 — a versão real do projeto — e também Node 24) e **ambos falharam** (8/9 e 6/6 testes, respectivamente): as rotas relativas `/api/stream/sensors`/`/api/v1/predictions` não eram interceptadas pelo MSW, então o banner crítico nunca aparecia. Isso era **pré-existente e independente** (reproduzido em specs que eu não toquei) — não foi corrigido aqui, seguindo a instrução explícita de não corrigir testes não relacionados.
->
-> **Atualização (task posterior — "fix de integração MSW/Playwright do Dashboard")**: causa raiz completa identificada e corrigida — três defeitos compostos, não só o mismatch de URL: (1) os handlers de `/api/stream/sensors`/`/api/v1/predictions` estavam registrados na origem absoluta `API_BASE` em vez de path relativo (o consumidor real, `hooks/use-sensor-data.ts`, chama caminho relativo, resolvido contra a origem da própria página); (2) o handler de `/api/v1/predictions` sempre devolvia uma página vazia, independente do cenário; (3) achado maior: `components/alert-panel.tsx` (testids `alert-panel`/`critical-banner` que esses dois specs usam) tinha sido desconectado de `SensorMonitor` no commit `de44dc1` ("immersive critical state"), muito antes — código morto. Corrigido com path relativo + handler responsivo ao cenário (`mocks/handlers.ts`) e 3 atributos `data-testid`/`data-risk`/`role` adicionados aos elementos já existentes de `sensor-monitor.tsx` (zero mudança de layout/lógica) — ver `PENDENCIAS.md` para o detalhe completo. Resultado: `failure_alert.spec.ts` 9/9, `dashboard_flow.spec.ts` 6/6, `maintenance_assistant.spec.ts` 7/7 (RNF-53 incluso), suíte completa 34/34, `--repeat-each=2` 44/44 sem intermitência.
+O primeiro passo do teste RNF-53 (banner crítico do Dashboard) depende do mesmo mecanismo de `/api/stream/sensors`/`/api/v1/predictions` que os specs `failure_alert.spec.ts`/`dashboard_flow.spec.ts` usam, e esses specs falhavam (8/9 e 6/6) num ambiente limpo (container Playwright oficial, Node 20 e Node 24). A causa eram três defeitos compostos: (1) os handlers de `/api/stream/sensors`/`/api/v1/predictions` estavam registrados na origem absoluta `API_BASE` em vez de path relativo (o consumidor real, `hooks/use-sensor-data.ts`, chama caminho relativo); (2) o handler de `/api/v1/predictions` sempre devolvia uma página vazia, independente do cenário; (3) `components/alert-panel.tsx` (testids `alert-panel`/`critical-banner`) tinha sido desconectado de `SensorMonitor` no commit `de44dc1` ("immersive critical state") e virado código morto. Corrigido com path relativo + handler responsivo ao cenário (`mocks/handlers.ts`) e 3 atributos `data-testid`/`data-risk`/`role` adicionados aos elementos já existentes de `sensor-monitor.tsx` (sem mudança de layout ou lógica). Resultado: `failure_alert.spec.ts` 9/9, `dashboard_flow.spec.ts` 6/6, `maintenance_assistant.spec.ts` 7/7 (RNF-53 incluso), suíte completa 34/34, `--repeat-each=2` 44/44 sem intermitência.
 
 #### Testes e execução
 
@@ -1340,7 +1338,7 @@ pnpm exec playwright test e2e/alert_settings.spec.ts
 pnpm exec playwright test   # suíte completa
 ```
 
-`alert_settings.spec.ts`: **12/12 passam**, de forma estável em execuções repetidas. `maintenance_assistant.spec.ts`: **7/7 passam**, de forma estável — o achado pré-existente acima (rota errada + integração MSW/predições) que bloqueava o 7º teste (RNF-53) foi corrigido numa task posterior (fix de integração MSW/Playwright do Dashboard) — ver detalhes em `PENDENCIAS.md`.
+`alert_settings.spec.ts`: **12/12 passam**, de forma estável em execuções repetidas. `maintenance_assistant.spec.ts`: **7/7 passam**, de forma estável (o 7º teste, RNF-53, depende da correção descrita acima).
 
 #### CI
 
@@ -1383,7 +1381,7 @@ flowchart TD
     PG --> EP["GET /monitoring/drift<br/>(só leitura, nunca dispara análise)"]
 ```
 
-#### Auditoria antes desta mudança
+#### Estado anterior
 
 - **Celery**: `src/core/celery_app.py` já existia (RNF-50/51, notificações críticas) — reaproveitado integralmente, nenhuma segunda aplicação Celery criada. Adicionado só `beat_schedule` à configuração existente + um novo import de task no final do módulo (mesmo padrão de `notification_tasks`). **Celery Beat não existia** — só `celery-worker` (consumidor). `timezone="UTC"`/`enable_utc=True` já configurados pelo RNF-50, reaproveitados sem alteração.
 - **Dados**: tabela `predictions` (RF-09, `src/models/prediction.py`) já persiste as 12 features de entrada de TODA predição real — usada como fonte de "current" sem nenhuma tabela nova para isso. Dataset de referência: `apps/ml/data/processed/metropt3.parquet` (o MESMO parquet que `SensorSimulator` já usa para replay, `settings.simulator_parquet_path` já existente — nenhum caminho/config novo).
@@ -1479,7 +1477,7 @@ mesma agregação (`max`), mesmos testes de fronteira, mesma persistência.
 
 Task disparada manualmente 2x contra o stack real (`daily_drift_analysis_task.delay()`, broker Redis real) — 1ª execução: `current_rows=86270` (predições reais acumuladas por horas de simulador rodando), `psi≈2.70`, `drift_detected=true`, persistido. 2ª execução (mesmo dia real): `psi≈2.71` (dados mudaram levemente entre as duas chamadas), **mesma linha (`id=1`) atualizada, não duplicada** — idempotência confirmada contra Postgres real. `GET /api/monitoring/drift` (através do Nginx real, `/api/` → `api:8000`, mesmo padrão de todos os outros endpoints REST) devolveu o histórico correto. (Validação original, com `evidently`; o algoritmo de PSI é bit-a-bit idêntico após a RNF-62 — ver subseção acima.)
 
-**Não observado em tempo real**: o Beat disparando autonomamente às 03:00 UTC (exigiria esperar até esse horário — ver PENDENCIAS.md). Validado via inspeção do `beat_schedule` real carregado + disparo manual da MESMA task contra a infraestrutura real (broker/worker/Postgres reais) — o caminho `task → DriftMonitor → PSI → Postgres → endpoint` é idêntico ao que o Beat dispararia; só o gatilho (cron vs. manual) difere.
+**Não observado em tempo real**: o Beat disparando autonomamente às 03:00 UTC (exigiria esperar até esse horário). Validado via inspeção do `beat_schedule` real carregado + disparo manual da MESMA task contra a infraestrutura real (broker/worker/Postgres reais) — o caminho `task → DriftMonitor → PSI → Postgres → endpoint` é idêntico ao que o Beat dispararia; só o gatilho (cron vs. manual) difere.
 
 #### Como executar manualmente para teste
 
@@ -1495,7 +1493,7 @@ O `beat_schedule` (`crontab(hour=3, minute=0)`) não foi alterado para a valida�
 
 #### Limitações conhecidas
 
-Ver seção "RF-27 / RNF-55" em [PENDENCIAS.md](PENDENCIAS.md) — PSI observado alto no ambiente de dev/demo atual (artefato do replay sequencial do simulador, não necessariamente um problema em produção real), `drift_detected` não aciona notificação (fora de escopo), reference é uma amostra fixa sem refresh automático, sem UI de frontend (fora de escopo).
+Limitações conhecidas: PSI observado alto no ambiente de dev/demo atual (artefato do replay sequencial do simulador, não necessariamente um problema em produção real), `drift_detected` não aciona notificação (fora de escopo), reference é uma amostra fixa sem refresh automático, sem UI de frontend (fora de escopo).
 
 ---
 
@@ -2068,9 +2066,9 @@ O pipeline de **ingestão + treino dos modelos de produção** (Random Forest e 
 
 > **Git** versiona código e metadados DVC (`dvc.yaml`, `dvc.lock`, `*.dvc`); **DVC** gerencia os dados/artefatos grandes no remote storage.
 
-**Nem todo output do `dvc.yaml` vai para o remote.** `data/raw/metropt-3+dataset.zip` (~208 MB) é o único dependency real movido para o cache/remote do DVC (`dvc add`, ponteiro `.dvc` no Git). Já `data/processed/metropt3.parquet` e todo `models/*.joblib`/`*.onnx` são declarados como `outs` do `dvc.yaml` com `cache: false` — isso os mantém no **grafo de dependências** do DVC (`dvc dag`/`dvc status` detectam quando ficam desatualizados em relação a `ingest.py`/`train_*.py`/ao parquet), mas o arquivo em si **continua commitado no Git normalmente**, exatamente como já era decidido desde a RNF-56/57 (ver `PENDENCIAS.md`). Por isso `dvc push` só envia o `.zip` bruto ao MinIO — o parquet e os modelos nunca aparecem no bucket, de propósito.
+**Nem todo output do `dvc.yaml` vai para o remote.** `data/raw/metropt-3+dataset.zip` (~208 MB) é o único dependency real movido para o cache/remote do DVC (`dvc add`, ponteiro `.dvc` no Git). Já `data/processed/metropt3.parquet` e todo `models/*.joblib`/`*.onnx` são declarados como `outs` do `dvc.yaml` com `cache: false` — isso os mantém no **grafo de dependências** do DVC (`dvc dag`/`dvc status` detectam quando ficam desatualizados em relação a `ingest.py`/`train_*.py`/ao parquet), mas o arquivo em si **continua commitado no Git normalmente**, exatamente como já era decidido desde a RNF-56/57. Por isso `dvc push` só envia o `.zip` bruto ao MinIO — o parquet e os modelos nunca aparecem no bucket, de propósito.
 
-Escopo desta primeira passada: `ingest` → `train_random_forest` → `train_xgboost`. Os modelos de deep learning (`train_mlp.py`, `train_sequential.py` ×3 arquiteturas, `train_autoencoder.py`) e `promote_model.py` continuam existindo e funcionando exatamente como antes (§12.3), mas **não** são stages do `dvc.yaml` nesta versão — `promote_model.py` em particular não é sequer candidato a stage DVC (seu input real é o estado mutável de runs já logados num servidor MLflow, não um conjunto de arquivos com hash estável); os demais têm tempo de treino de dezenas de minutos a horas, não são o modelo ativo em produção (`ACTIVE_MODEL=random_forest_v2`) e um deles (`train_mlp.py`) nem sequer fixa seed hoje. Ver `PENDENCIAS.md` (seção RNF-60/RNF-61) para o racional completo.
+Escopo desta primeira passada: `ingest` → `train_random_forest` → `train_xgboost`. Os modelos de deep learning (`train_mlp.py`, `train_sequential.py` ×3 arquiteturas, `train_autoencoder.py`) e `promote_model.py` continuam existindo e funcionando exatamente como antes (§12.3), mas **não** são stages do `dvc.yaml` nesta versão — `promote_model.py` em particular não é sequer candidato a stage DVC (seu input real é o estado mutável de runs já logados num servidor MLflow, não um conjunto de arquivos com hash estável); os demais têm tempo de treino de dezenas de minutos a horas, não são o modelo ativo em produção (`ACTIVE_MODEL=random_forest_v2`) e um deles (`train_mlp.py`) nem sequer fixa seed hoje.
 
 #### Instalação
 
@@ -2400,8 +2398,8 @@ Pull Request / Push
            SUCCESS / FAILURE
 ```
 
-**RNF-68 — por que quase tudo roda em paralelo:** auditoria
-encontrou o pipeline anterior encadeando jobs (`lint → test`, `lint → test →
+**RNF-68 — por que quase tudo roda em paralelo:** o pipeline anterior
+encadeava encadeando jobs (`lint → test`, `lint → test →
 e2e`) que não tinham dependência REAL entre si — só compartilhavam runner
 por conveniência de YAML. `pytest` não precisa que `ruff`/`black`/`mypy`
 tenham passado antes (só precisa das mesmas dependências instaladas, que
@@ -2458,7 +2456,7 @@ trabalho futuro, não como algo simulado ou escondido.
 
 **Mutation Testing — 18 grupos (1 arquivo cada; antes 4, depois 9):** é a
 etapa mais lenta de longe (25-90 min sequencial para os 1401 mutantes/18
-arquivos, ver `RELATORIO-RNF-64-RNF-65.md`) — granularidade máxima por
+arquivos) — granularidade máxima por
 arquivo é o teto real de paralelismo disponível sem fatiar mutantes de um
 mesmo arquivo entre jobs (ver tabela de RNF-68 acima).
 
@@ -2551,8 +2549,7 @@ pnpm eslint . ; pnpm prettier --check . ; pnpm check:component-size
 pnpm exec vitest run --coverage
 pnpm exec playwright test   # requer `pnpm e2e:setup` antes, 1ª vez
 
-# Mutation testing (local, escopo completo — 25-90 min, ver §3 do
-# RELATORIO-RNF-64-RNF-65.md)
+# Mutation testing (local, escopo completo — 25-90 min)
 cd apps\backend
 mutmut run
 ```
@@ -2563,9 +2560,6 @@ workflow) — rodar cada comando localmente valida CORRETUDE, não mede
 paralelismo real de runners.
 
 ### 14.10. Cache de Inferência com Redis (RNF-70 / RNF-71)
-
-Relatório completo (auditoria, baseline, `EXPLAIN ANALYZE`, arquitetura do
-`InferenceCache`, testes, benchmark): **[RELATORIO-RNF-70-RNF-71.md](RELATORIO-RNF-70-RNF-71.md)**.
 
 **Resumo:** `POST /predict/` ganhou um cache-aside via Redis (mesma
 instância já usada pelo broker do Celery, RNF-50/51 — isolado num DB Redis
@@ -2736,7 +2730,7 @@ docker compose restart frontend
 
 **Solução**: aumente o limite em `docker-compose.yml` (`deploy.resources.limits.memory`) ou suba o Docker Desktop para 8+ GB em **Settings → Resources**.
 
-### Known Issues (não corrigidos — fora do escopo)
+### Known Issues
 
 Divergências/observações reais encontradas na auditoria (RNF-41/RNF-42), documentadas em vez de corrigidas porque esta é uma task de documentação, não de mudança de comportamento:
 
@@ -2746,13 +2740,13 @@ Divergências/observações reais encontradas na auditoria (RNF-41/RNF-42), docu
 - **Imagem do `mcp-server` grande (~6–7 GB) (RF-20/RNF-44/RNF-62)**: `pip install torch` da PyPI padrão inclui dependências CUDA (`nvidia-*`, ~2 GB) mesmo num container CPU-only sem GPU. Funciona (PyTorch cai para CPU automaticamente — `Use pytorch device_name: cpu` no log). A remoção do `chromadb` na RNF-62 já tirou ~40 pacotes transitivos (`onnxruntime`, `kubernetes`, `grpcio`, `opentelemetry-*`, `posthog`, …), mas `torch`+CUDA continuam dominando. Otimização futura: instalar `torch` a partir do índice CPU-only da PyTorch (`--index-url https://download.pytorch.org/whl/cpu`) no `Dockerfile` — não feito para não re-validar toda a stack (o `pip-audit` já está limpo com o `torch` padrão).
 - **PDF sem texto extraível é reprocessado a cada execução** (RF-20): como nenhum `file_hash` é gravado para um arquivo que gerou zero chunks, ele nunca é marcado como "já visto" — cada run tenta extrair de novo (custo: só a extração via pypdf, nenhum embedding é gerado). Decisão deliberada: se o PDF ganhar texto extraível depois (ex.: substituído por uma versão não-escaneada), a próxima execução já pega automaticamente, sem precisar de nenhuma ação manual.
 - **Trocar `EMBEDDING_MODEL` não invalida embeddings antigos automaticamente**: cada chunk registra `embedding_model` nos metadados, mas a lógica de skip/reindex compara só `file_hash` — se você trocar de modelo sem tocar nos PDFs, os embeddings antigos (gerados pelo modelo anterior) continuam no vector store, agora "misturados" com um `embedding_model` diferente do `EMBEDDING_MODEL` atual. Fora do escopo (RF-20 pede consistência do modelo *dentro* de uma mesma indexação, não migração entre modelos); se for trocar de modelo, apague `data/chroma/` antes de reindexar.
-- **`tests/test_simulator.py` (backend) falha na coleta** com `IndexError: 3` em `Path(__file__).resolve().parents[3]` — pré-existente, não introduzido nem corrigido pela RF-22 (confirmado via `git stash` antes desta mudança). Contorno usado para rodar a suíte: `pytest --ignore=tests/test_simulator.py`.
+- **`tests/test_simulator.py` (backend) falha na coleta** com `IndexError: 3` em `Path(__file__).resolve().parents[3]` — pré-existente, não introduzido nem corrigido pela RF-22 (confirmado via `git stash`). Contorno usado para rodar a suíte: `pytest --ignore=tests/test_simulator.py`.
 - **Llama 3.2 3B nem sempre segue a instrução de branch "Limitações" do System Prompt (RF-22)**: quando o MCP não retorna nenhum trecho relevante, o modelo às vezes mantém a estrutura completa do template (preenchendo "Não especificado nos trechos recuperados" nas seções, o que é seguro) em vez de trocar para a seção alternativa "## Limitações" exatamente como instruído — e uma vez chegou a citar a própria query do usuário como se fosse uma referência de manual. Validado que o modelo **nunca inventa** procedimento/peça/valor técnico nesses casos (a regra de segurança central se mantém), mas o *formato* exato da branch não é 100% determinístico com um modelo de 3B rodando localmente — limitação conhecida de modelos pequenos, não um bug de código.
 - **`apps/backend/requirements.txt` puxa `nvidia-nccl-cu12` (~340 MB) como dependência transitiva de `mcp` (RF-22)**, mesmo o backend sendo só um *cliente* MCP (nunca roda modelos de ML locais via essa lib). Não foi investigado a fundo qual extra do `mcp`/`opentelemetry` trafega isso — funciona normalmente (a lib nunca é importada em runtime), mas infla a imagem sem necessidade real. Mesma classe de problema do torch/CUDA no mcp-server (RF-20).
 - **`anyio`/`idna`/`typing_extensions` estavam com pin exato (`==`) em `apps/backend/requirements.txt`**, congelados de um `pip freeze` anterior, e conflitavam com as versões mínimas exigidas por `mcp` (RF-22). Resolvido removendo o pin exato dessas três dependências transitivas de baixo nível (deixando o pip resolver a versão compatível) — os pins de bibliotecas de topo (`fastapi`, `httpx`, `pydantic`, etc.) foram mantidos intactos.
 - **Rate limit de alertas críticos (RF-24) usa Postgres, não Redis** — decisão deliberada (nenhum cache existia no projeto; ver §4.10 para a análise completa). Funciona corretamente no volume atual (1 linha por ativo simulado), mas expiração é verificada na leitura (não expurgada em background) e não há índice dedicado em `expires_at` — não escalaria da mesma forma para milhares de equipamentos sem ajustes.
 - **Telegram (RF-24) não foi testado contra a API pública real** — nenhuma credencial real (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`) está disponível neste ambiente de desenvolvimento. Toda a validação de HTTP usa mock; a lógica de negócio (threshold, rate limit, concorrência, orquestração) foi validada com infraestrutura real (Postgres real, classes reais), só a chamada de rede ao Telegram em si é simulada.
-- **E-mail via Resend (RF-25) não foi testado contra a API real** — mesma limitação do Telegram acima, sem `RESEND_API_KEY` real neste ambiente. `EmailNotificationAdapter` é o primeiro canal de e-mail do projeto (nenhuma integração existia antes desta mudança).
+- **E-mail via Resend (RF-25) não foi testado contra a API real** — mesma limitação do Telegram acima, sem `RESEND_API_KEY` real neste ambiente. `EmailNotificationAdapter` é o primeiro canal de e-mail do projeto (nenhuma integração existia antes).
 - **Configuração de alertas (RF-25) é global, não por usuário** — o projeto não possui sistema de usuários; ver §4.11 para a decisão completa.
 - **Fila de notificações (RNF-50/51) sem retry automático e sem result backend** — decisões deliberadas de simplicidade; ver §4.12 para o raciocínio completo.
 
@@ -2794,8 +2788,8 @@ em todo push/PR para `main`.
 3. Nunca fazer downgrade/pin artificial só para esconder o achado.
 4. Se a correção não for possível de imediato (sem release, ou exige
    upgrade em cascata que quebra outra coisa): documentar tecnicamente o
-   motivo e por que o caminho vulnerável **não é alcançável** — em
-   `PENDENCIAS.md` e como `--ignore-vuln <ID>` explícito no CI (assim
+   motivo e por que o caminho vulnerável **não é alcançável**, com
+   `--ignore-vuln <ID>` explícito no CI (assim
    qualquer achado **novo** ainda quebra o build).
 
 **Distinção produção vs. desenvolvimento**
@@ -2902,7 +2896,7 @@ relatórios (são artefatos de execução).
   são exercidos autenticados (não colocar token real no repo). Cobertura
   autenticada fica como scan manual documentado.
 - ZAP não roda no CI (imagem ~1.5 GB, precisa da stack de pé) — o
-  procedimento acima é reproduzível localmente; ver relatório da task.
+  procedimento acima é reproduzível localmente.
 
 **Resultado mais recente** (2026-09-18, baseline contra `nginx` real —
 frontend + api + mcp-server de pé, `-t http://host.docker.internal/`, 64
@@ -2965,7 +2959,7 @@ O job `security-audit` (`.github/workflows/ci.yml`) roda em todo push/PR:
   qualquer High/Critical, **sem nenhum `--ignore-vuln`**. Até 2026-09-18
   `nltk` (via `evidently`, RF-27/RNF-55) era ignorado aqui — `evidently`
   foi removido de produção e o cálculo de PSI reimplementado com
-  `numpy`/`pandas` (ver §4.15 "PSI sem evidently" e `PENDENCIAS.md`), então
+  `numpy`/`pandas` (ver §4.15 "PSI sem evidently"), então
   `nltk` não entra mais na árvore resolvida — nada para ignorar.
 - `pip-audit -r apps/mcp-server/requirements.txt` — **falha** o build em
   qualquer High/Critical (sem `--ignore-vuln`, sem `continue-on-error`).

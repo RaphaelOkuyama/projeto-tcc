@@ -8,7 +8,7 @@ SDK — a API REST do Resend é simples o bastante (`POST /emails` com
 `Authorization: Bearer <API_KEY>`) que adicionar o pacote `resend` como
 dependência só para isso não se justifica.
 
-Antes desta mudança,NENHUMA integração de e-mail existia
+Antes desta mudança, NENHUMA integração de e-mail existia
 no projeto (nem Resend, nem SMTP, nem qualquer outro provedor) — este é o
 primeiro canal de e-mail do PredictIQ, não uma reintegração.
 """

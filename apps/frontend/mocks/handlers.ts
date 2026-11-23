@@ -280,13 +280,12 @@ export const handlers = [
 
   // ── RF-22/23 / RNF-53-54 — POST /v1/maintenance/suggest/stream ──────────────
   //
-  // Auditoria (RNF-54): RNF-54 menciona provedor externo, mas o projeto NUNCA usou
-  // provedor externo — a integração de LLM real é o Ollama local (Llama 3.2 3B,
+  // Fronteira mockada (RNF-54): a integração de LLM é o Ollama local (Llama 3.2 3B,
   // RNF-46), consumido via streaming SSE por
   // `lib/maintenance-stream.ts::streamMaintenanceSuggestion` (fetch +
   // ReadableStream, NÃO EventSource — o payload precisa ir no corpo POST).
   // A fronteira mockada aqui é exatamente essa: o endpoint HTTP que o
-  // frontend realmente chama, não uma integração provedor externo inexistente.
+  // frontend realmente chama.
   //
   // O corpo da resposta é um ReadableStream real (não uma string única
   // disfarçada) — os eventos SSE (`searching`/`token`*/`done`|`skipped`|

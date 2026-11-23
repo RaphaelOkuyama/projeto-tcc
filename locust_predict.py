@@ -43,7 +43,7 @@ existente é requisito (RNF-70 §16 "não fabricar cache hit artificial").
 PREDICT_WAIT_SECONDS controla o intervalo entre requisições de cada usuário
 virtual para manter o agregado abaixo de 100/min; o padrão (0) é para testes
 de CONCORRÊNCIA/contenção onde estourar 429 é o comportamento esperado e
-observável (ver RELATORIO-RNF-70-RNF-71.md).
+observável.
 
 Configuração (env vars, todas opcionais)
 ------------------------------------------

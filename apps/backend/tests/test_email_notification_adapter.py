@@ -1,7 +1,7 @@
 """
 Testes de `EmailNotificationAdapter` (RF-25 / RNF-49, RNF-64/RNF-65).
 
-Auditoria inicial:37% de cobertura — só `build_critical_failure_email_text`
+Auditoria inicial: 37% de cobertura — só `build_critical_failure_email_text`
 (helper puro) era testado indiretamente; o envio HTTP em si (`_send`) nunca
 era exercitado. Mesmo padrão de mock estabelecido pelo projeto para os outros
 adapters HTTP (`TelegramNotificationAdapter`/`OllamaClient`):

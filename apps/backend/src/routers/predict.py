@@ -125,7 +125,7 @@ async def predict(
         "todas as amostras, não um loop de N predições). `predictions[i]` "
         "corresponde a `samples[i]` — mesma ordem, mesma contagem."
         "\n\nFora do escopo desta rota (decisão deliberada, ver "
-        "RELATORIO-RNF-72-RNF-73.md): não persiste em `predictions` nem "
+        "RNF-72/73): não persiste em `predictions` nem "
         "aciona alertas/cache — RF-09/RF-14/RNF-70 continuam escopados ao "
         "`POST /predict/` de amostra única."
     ),

@@ -3,7 +3,7 @@ Cliente Ollama — RF-22 / RNF-46.
 
 HTTP puro via `httpx` (já presente em requirements.txt para outros usos —
 nenhuma dependência nova) contra `POST {OLLAMA_BASE_URL}/api/chat`, API real
-do Ollama confirmada contra a instância local do ambiente
+do Ollama confirmada contra a instância local do Ollama
 (`{"model", "messages": [...], "stream": false}` -> `{"message": {"content": ...}}`).
 
 Processamento 100% local (RNF-46): nenhuma chamada a APIs externas de LLM

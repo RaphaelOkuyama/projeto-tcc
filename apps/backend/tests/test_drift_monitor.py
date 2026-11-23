@@ -431,8 +431,8 @@ def test_task_runs_directly_without_http(
     bomba-relógio: passado tempo suficiente desde que `_NOW` foi escrito, a
     janela "últimas 24h" da task real (ancorada no relógio de verdade) para
     de conter as linhas semeadas perto de `_NOW`, e `current_rows` cai pra 0
-    (confirmado: falhava com `insufficient_data` ao rodar a suíte completa
-   , bloqueando o baseline limpo exigido pelo mutation testing).
+    (confirmado: falhava com `insufficient_data` ao rodar a suíte completa,
+    bloqueando o baseline limpo exigido pelo mutation testing).
     Corrigido semeando relativo ao relógio real (`datetime.now(timezone.utc)`)
     — não recria o mesmo bug com uma nova data fixa.
     """
@@ -641,7 +641,7 @@ def test_psi_real_high_when_distributions_differ_significantly() -> None:
         "localmente/no Docker via apps/ml/src/ingest_metropt.py. Mesma "
         "situação de test_simulator.py (RF-13), que depende do mesmo "
         "arquivo e já é ignorado da suíte por esse motivo — ver README/"
-        "PENDENCIAS.md."
+        "o histórico do PSI."
     ),
 )
 def test_reference_data_loads_real_baseline_excluding_failure_windows() -> None:

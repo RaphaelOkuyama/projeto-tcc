@@ -38,7 +38,7 @@ empiricamente: `pip uninstall nltk` faz até o import mais simples do
 `evidently` falhar com `ModuleNotFoundError`, então NÃO é possível manter
 `evidently` e remover `nltk` do ambiente). `nltk` tem uma vulnerabilidade
 High sem correção publicada em nenhuma versão (`PYSEC-2026-3740`/
-`CVE-2026-81726`) — ver PENDENCIAS.md para o histórico completo.
+`CVE-2026-81726`).
 
 Como a única funcionalidade do `evidently` de fato usada aqui era o cálculo
 de PSI numérico (`Report(metrics=[ValueDrift(column=c, method="psi")])`),

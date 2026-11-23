@@ -187,7 +187,7 @@ jobs:
 
       # RNF-56/57 — o step geral de pytest estava desabilitado há tempos
       # (comentário antigo dizia que exigiria provisionar Postgres no
-      # runner). Auditoria inicial:NENHUM teste do backend usa Postgres
+      # runner). Auditoria inicial: NENHUM teste do backend usa Postgres
       # real — todos os que tocam banco usam SQLite em memória
       # (`sqlite+aiosqlite:///:memory:`, ver qualquer `tests/test_*.py`) —
       # a causa raiz real era outra (um singleton em
@@ -253,7 +253,7 @@ jobs:
       # aqui: exigiria o .zip bruto (~208 MB, não versionado no Git — só o
       # ponteiro .dvc) e um MinIO/S3 real acessível pelo runner —
       # infraestrutura que o CI não tem hoje. Reprodução completa é validada
-      # localmente (ver relatório da task RNF-60/61); documentado como
+      # localmente (RNF-60/61); documentado como
       # limitação conhecida, não mascarado com mocks que não validariam o
       # pipeline real. Os 3 comandos saem com código 0 mesmo sem o .zip e
       # sem credenciais (testado): `doctor` checa o ambiente, `dag` valida
@@ -285,8 +285,7 @@ jobs:
   # em vez de um job único: mutation testing é ORDENS DE MAGNITUDE mais
   # lento que pytest — cada um dos ~1400 mutantes do escopo core dispara sua
   # PRÓPRIA subprocess de pytest; um job único rodaria os 18 arquivos
-  # sequencialmente (25-90 min de parede, medido em
-  # RELATORIO-RNF-64-RNF-65.md). Dividir por arquivo em grupos que rodam EM
+  # sequencialmente (25-90 min de parede). Dividir por arquivo em grupos que rodam EM
   # PARALELO corta o tempo sem tirar nenhum arquivo do escopo real: os 18
   # grupos juntos cobrem exatamente os mesmos 18 arquivos de
   # `[tool.mutmut] paths_to_mutate` — nenhum subconjunto menor, nunca um
@@ -322,9 +321,8 @@ jobs:
   # arquivo entre jobs), o pipeline foi de ~68min para ~50min — real, mas
   # ainda acima da meta de <15min da RNF-68. O gargalo agora é
   # model_service.py sozinho (~38-50min conforme a run), que já está no
-  # menor grão possível de arquivo — ver RELATORIO-RNF-68-RNF-69.md pro
-  # status final e a recomendação de próximo passo (sharding de mutantes
-  # por ID dentro de um mesmo arquivo, fora do escopo).
+  # menor grão possível de arquivo. O próximo passo seria sharding de mutantes
+  # por ID dentro de um mesmo arquivo.
   # SEM `needs: lint-python` pelo mesmo motivo do job `test-python` acima —
   # só depende das próprias dependências.
   # RNF-70/71 — grupo 19 (inference_cache.py) adicionado depois da narrativa
@@ -823,7 +821,7 @@ jobs:
       # RNF-70 — smoke reduzido de POST /predict cache-hit, MESMO princípio
       # do smoke SSE acima ("não é o benchmark completo, só detecta
       # regressão grosseira"): a evidência OFICIAL de RNF-70 (177 amostras,
-      # p95=47ms) é a run manual documentada em RELATORIO-RNF-70-RNF-71.md
+      # p95=47ms) é a run manual
       # (README §14 tem o comando pra reproduzir). Este step só confirma que
       # cache HIT continua funcionando fim-a-fim depois de cada mudança.
       #

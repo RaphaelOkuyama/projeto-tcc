@@ -1,7 +1,7 @@
 """
 Testes de `OnnxAutoencoderAdapter` (RF-10, RNF-64/RNF-65).
 
-Auditoria inicial:84% de cobertura mas mutation score baixo — os testes
+Auditoria inicial: 84% de cobertura mas mutation score baixo — os testes
 existentes (via `test_model_service_real_artifacts.py`) só exercitam o
 caminho feliz ponta-a-ponta, sem verificar os VALORES exatos da fórmula do
 sigmoide (documentada no próprio docstring do módulo: score(threshold)=0.5,

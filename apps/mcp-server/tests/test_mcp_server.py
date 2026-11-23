@@ -103,7 +103,7 @@ def test_server_module_imports_without_error() -> None:
 
 
 def test_server_host_binds_all_interfaces() -> None:
-    """Requisito explícito da task: o servidor deve escutar em 0.0.0.0."""
+    """O servidor deve escutar em 0.0.0.0 (necessário no container)."""
     assert MCP_SERVER_HOST == "0.0.0.0"
 
 

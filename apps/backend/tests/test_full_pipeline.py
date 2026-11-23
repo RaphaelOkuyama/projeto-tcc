@@ -283,7 +283,7 @@ def build_notifier(
       - `rate_limiter` mockado (sempre adquire) — evita depender de Postgres
         real (RNF-52); o comportamento do rate limiter em si já é coberto
         exaustivamente por `test_notifications.py`/`test_alert_settings.py`,
-        não duplicado aqui (item 19 do requisito).
+        não duplicado aqui.
       - `adapter` (Telegram) mockado — NUNCA deve ser chamado diretamente
         quando `enqueue_notification` está presente (prova de RNF-50: envio
         não é síncrono).
@@ -360,7 +360,7 @@ async def test_full_pipeline_critical_prediction() -> None:
     response = await suggestion_service.suggest(request)
 
     # 8. Contexto MCP realmente chegou ao LLM — não é um passo isolado que
-    # "passa" sem estar de fato conectado ao próximo (item 18 do enunciado).
+    # "passa" sem estar de fato conectado ao próximo.
     assert mcp.calls == ["Bomba Centrífuga CX-500: ruído excessivo na sucção da bomba"]
     assert len(ollama.calls) == 1
     _, user_prompt = ollama.calls[0]
@@ -495,7 +495,7 @@ async def test_between_critical_default_and_suggestion_notifies_but_does_not_sug
 
 
 # ---------------------------------------------------------------------------
-# Fallbacks — item 11/12 do enunciado
+# Fallbacks
 # ---------------------------------------------------------------------------
 
 
@@ -532,7 +532,7 @@ async def test_fallback_llm_unavailable_raises_structured_error_no_fabricated_pl
 
 async def test_fallback_mcp_unavailable_raises_structured_error() -> None:
     """Mesmo raciocínio acima, para o MCP indisponível (não coberto
-    explicitamente pelo enunciado, mas simétrico e barato de confirmar)."""
+    explicitamente, mas simétrico e barato de confirmar)."""
     mcp = fake_mcp_client(
         {}, raise_exc=MCPUnavailableError("Não foi possível conectar ao servidor MCP.")
     )

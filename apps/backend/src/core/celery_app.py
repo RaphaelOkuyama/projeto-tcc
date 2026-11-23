@@ -10,7 +10,7 @@ inferência (`AlertService.process_prediction` -> RF-14). Ver
 (a task em si, que roda no processo do `celery-worker` — container próprio,
 ver docker-compose.yml).
 
-Antes desta mudança,nenhum Celery/Redis existia no projeto. O rate
+Antes desta mudança, nenhum Celery/Redis existia no projeto. O rate
 limiter do RF-24 continua em Postgres — Redis aqui é SÓ o broker do Celery,
 nunca um substituto do banco.
 
@@ -31,7 +31,7 @@ Decisões de configuração:
   processo web (que só precisa do nome da task para enfileirar).
 
 RF-27 / RNF-55 — Celery Beat (análise diária de data drift):
-Antes desta mudança,nenhum Celery Beat existia no projeto (só
+Antes desta mudança, nenhum Celery Beat existia no projeto (só
 `celery-worker`, consumidor). Reaproveita esta MESMA aplicação Celery — o
 `beat_schedule` abaixo só REGISTRA quando `monitoring.daily_drift_analysis`
 (`src/tasks/drift_tasks.py`) deve ser enfileirada; quem efetivamente

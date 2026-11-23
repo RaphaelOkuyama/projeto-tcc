@@ -1,7 +1,7 @@
 """
 Testes de `MCPSearchClient` (RF-22 / RNF-46, RNF-64/RNF-65).
 
-Auditoria inicial:31% de cobertura — `MCPSearchClient` é sempre mockado
+Auditoria inicial: 31% de cobertura — `MCPSearchClient` é sempre mockado
 por inteiro nos testes de `MaintenanceSuggestionService` (a fronteira de
 integração deliberada do projeto, ver `test_full_pipeline.py`), então sua
 PRÓPRIA lógica (mapeamento de exceção, validação de `is_error`/
@@ -16,7 +16,7 @@ módulo: construção da URL, `try/except` de conexão, checagem de
 
 A integração REAL (backend -> mcp-server de verdade) já foi validada
 manualmente contra o container real nas tasks RNF-62 (ver
-RNF-62-mcp-remediacao.md) — não repetida aqui como teste automatizado
+RNF-62) — não repetida aqui como teste automatizado
 porque exigiria a stack `docker compose` de pé, fora do escopo de uma
 suíte `pytest` unitária/de CI.
 """

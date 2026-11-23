@@ -130,7 +130,7 @@ services:
 
   # RNF-50 / RNF-51 — broker do Celery (fila assíncrona de notificações
   # críticas, ver services/critical_failure_notification_service.py +
-  # tasks/notification_tasks.py). Antes desta mudança,nenhum
+  # tasks/notification_tasks.py). Antes desta mudança, nenhum
   # Redis/cache existia no projeto (o rate limiter do RF-24 usa Postgres de
   # propósito — telegram_alert_rate_limiter.py). Este Redis NUNCA substitui
   # o Postgres nem guarda nenhum outro dado do domínio — é só o transporte

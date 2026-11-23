@@ -60,7 +60,7 @@ log = logging.getLogger("predictiq.mcp_server")
 # roda em container próprio (RNF-43) e a porta precisa ser previsível para
 # MCP_SERVER_URL (ver .env.example / README).
 MCP_SERVER_PORT: int = int(os.environ.get("MCP_SERVER_PORT", "8100"))
-MCP_SERVER_HOST: str = "0.0.0.0"  # escuta em todas as interfaces — requisito da task
+MCP_SERVER_HOST: str = "0.0.0.0"  # escuta em todas as interfaces (necessário no container)
 
 mcp = MCPServer(
     name="predictiq-mcp",

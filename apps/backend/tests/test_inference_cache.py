@@ -264,7 +264,7 @@ class TestInferenceCacheUnit:
         `PredictResponse.model_validate_json`) e `socket_connect_timeout`
         virando `1.3` (o timeout curto É a correção documentada em
         create_redis_client — um Redis parado voltaria a inflar /predict
-        para ~4s em vez de ~0.6s, ver RELATORIO-RNF-70-RNF-71.md §4.4).
+        para ~4s em vez de ~0.6s).
         Nenhum teste anterior inspecionava os kwargs de verdade.
         """
         client = create_redis_client("redis://localhost:6379/15")

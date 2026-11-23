@@ -20,7 +20,7 @@ export default defineConfig({
       exclude: ["components/ui/**", "**/*.stories.tsx"],
       // RNF-59: sem isso, o v8 provider SILENCIOSAMENTE pula o relatório de
       // cobertura sempre que qualquer teste falha — inclusive falhas
-      // pré-existentes e não relacionadas (ver PENDENCIAS.md). A cobertura
+      // pré-existentes e não relacionadas. A cobertura
       // real precisa ser medível mesmo com essas falhas presentes.
       reportOnFailure: true,
       // RNF-66/RNF-67: piso elevado de 70% -> 75% (meta de qualidade da

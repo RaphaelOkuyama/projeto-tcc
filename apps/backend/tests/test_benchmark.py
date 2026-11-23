@@ -16,7 +16,7 @@ Lógica pura de benchmark (sem depender de timing real / carregar modelos):
 
 Medições reais de performance (tempo/memória) NÃO são testadas aqui — são
 inerentemente instáveis; a validação end-to-end é rodar
-`python benchmark_models.py` de fato (ver seção de validação da task).
+`python benchmark_models.py` de fato (ver a seção de validação no README).
 """
 
 from __future__ import annotations

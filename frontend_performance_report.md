@@ -24,7 +24,7 @@ de itens exigindo virtualização. Inspecionado o código real:
 **Não existe lista grande para virtualizar no Dashboard hoje.** Instalar
 `react-window`/`@tanstack/react-virtual` para 10 `<li>` seria overhead puro
 (custo de virtualização > custo de renderizar 10 nós) e violaria a própria
-instrução da task de não otimizar sem gargalo real observado. Documentado
+regra de não otimizar sem gargalo real observado. Documentado
 aqui em vez de forçado — se o feed evoluir para um histórico real e grande,
 reavaliar.
 
@@ -61,7 +61,7 @@ Causa raiz: nenhum dos três era `React.memo`, então toda vez que
 `FleetDashboard` re-renderizava (a cada tick SSE, porque `useSensorData`
 atualiza `currentLatency`/`history` uma vez por segundo), os três
 re-executavam seu corpo inteiro (JSX, `recharts`, formatação) mesmo com
-props idênticas — exatamente o padrão que a task pediu para evitar
+props idênticas — exatamente o padrão a evitar
 ("SSE event → estado global inteiro atualizado → Dashboard inteiro
 re-renderizado").
 
@@ -83,7 +83,7 @@ esconderia um bug real caso a latência parasse de atualizar.
    inicial de **toda** visita a `/` mesmo para quem nunca abre o painel.
    Não aplicado a `FleetKPIs`/`ModelStatusCard` (usam `recharts`, mas estão
    acima da dobra, visíveis no primeiro paint — lazy-load ali seria
-   exatamente o anti-padrão que a task pede para evitar.
+   exatamente o anti-padrão a evitar.
 3. **Nenhuma virtualização** — ver seção acima.
 4. **Nenhuma otimização de estado adicional** — `useMemo`/`useCallback` já
    presentes no código (ex.: `distribution`, `latencyTelemetry` em

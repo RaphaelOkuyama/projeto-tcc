@@ -160,7 +160,7 @@ _telegram_adapter = TelegramNotificationAdapter(
 _telegram_rate_limiter = TelegramAlertRateLimiter(
     ttl_seconds=settings.critical_failure_rate_limit_seconds
 )
-# RF-25 — e-mail via Resend (RNF-49). Antes desta mudança,nenhuma
+# RF-25 — e-mail via Resend (RNF-49). Antes desta mudança, nenhuma
 # integração de e-mail existia no projeto — primeiro canal de e-mail do
 # PredictIQ. Sempre construído mesmo sem API key configurada — a checagem
 # de configuração ausente acontece em `_send` (mesmo padrão do Telegram).

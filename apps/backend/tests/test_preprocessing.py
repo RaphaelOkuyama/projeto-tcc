@@ -1,7 +1,7 @@
 """
 Testes de `MetroPTPreprocessor` (feature engineering, RNF-64/RNF-65).
 
-Auditoria inicial:`src/services/preprocessing.py` tinha 28% de cobertura
+Auditoria inicial: `src/services/preprocessing.py` tinha 28% de cobertura
 e ZERO teste dedicado — só era exercitado de raspão via `InferencePipelineService`
 quando o buffer estava aquecido. Nenhum dos métodos privados (`_impute_nulls`,
 `_add_pressure_delta`, `_add_rolling_std`, `_add_moving_averages`,

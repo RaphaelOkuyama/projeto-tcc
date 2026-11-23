@@ -13,7 +13,7 @@ Path: `POST /v1/maintenance/suggest` — via Nginx (`location /api/`) e
 Nota de convenção: dos routers existentes, só `predictions.py` usa prefixo
 `/v1` (`APIRouter(prefix="/v1", ...)`); `predict.py`/`models.py`/
 `simulator.py` não versionam. A convenção do projeto é inconsistente, não
-inexistente — como a especificação pede o path exato com `/v1/`,
+inexistente — como o requisito define o path exato com `/v1/`,
 seguimos o precedente de `predictions.py` aqui, sem alterar os outros
 routers. Ver README "RF-22 — Divergências".
 
@@ -96,7 +96,7 @@ async def suggest_maintenance(
 
 
 def _format_sse_event(event: SuggestionStreamEvent) -> str:
-    """Serializa um `SuggestionStreamEvent` no protocolo SSE
+    """Serializa um `SuggestionStreamEvent` no protocolo SSE do assistente
     (RF-23 §2): ``event: <type>\\ndata: <json>\\n\\n``. Cada `data:` é sempre
     JSON válido — nunca texto solto."""
     data: dict[str, Any]

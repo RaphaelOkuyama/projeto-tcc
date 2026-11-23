@@ -44,7 +44,7 @@ branch = true
 # abaixo de 85%. `show_missing` para o relatório continuar apontando
 # linhas específicas sem cobertura (mesmo formato já usado durante esta
 # task). Elevado de 80% para 85% após a suíte real adicionada em
-# RNF-64/RNF-65 (ver RELATORIO-RNF-64-RNF-65.md) levar a cobertura total
+# RNF-64/RNF-65 levar a cobertura total
 # medida para ~92% — o valor não foi escolhido "porque a suíte já passa
 # nele": 85% é o piso exigido pela RNF-65, e a suíte foi construída para
 # cobrir comportamento real (branches de negócio, não apenas linhas),

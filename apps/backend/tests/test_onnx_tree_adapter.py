@@ -1,7 +1,7 @@
 """
 Testes de `OnnxTreeAdapter` (RF-10, RNF-64/RNF-65).
 
-Auditoria inicial:67% de cobertura — faltavam os DOIS erros de
+Auditoria inicial: 67% de cobertura — faltavam os DOIS erros de
 construtor (artefato ausente / feature_names vazio), o método `predict()`
 (threshold 0.5) chamado diretamente, e o Pass 2 (ZipMap) de
 `_extract_probabilities`. `test_model_service_real_artifacts.py` já cobre o

@@ -1,7 +1,7 @@
 """
 Testes de `OllamaClient` (RF-22 / RF-23 / RNF-46/47, RNF-64/RNF-65).
 
-Auditoria inicial:0% de cobertura direta — `OllamaClient` sempre era
+Auditoria inicial: 0% de cobertura direta — `OllamaClient` sempre era
 mockado por inteiro nos testes de `MaintenanceSuggestionService`, então seu
 próprio tratamento de timeout/erro HTTP/404/JSON inválido/conteúdo vazio
 nunca era exercitado. Mesmo padrão já estabelecido pelo projeto para

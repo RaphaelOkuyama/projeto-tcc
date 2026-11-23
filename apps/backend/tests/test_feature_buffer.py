@@ -1,7 +1,7 @@
 """
 Testes de `SensorBuffer` (feature engineering stateful, RNF-64/RNF-65).
 
-Auditoria inicial:76% de cobertura, zero teste dedicado — só exercitado
+Auditoria inicial: 76% de cobertura, zero teste dedicado — só exercitado
 de raspão via `InferencePipelineService`. Validação de construtor
 (`window_size`/`warmup_size`), FIFO com eviction, `is_warm()` (limiar
 `>=`, não `>`), `to_dataframe()` (ordem cronológica), `clear()`.

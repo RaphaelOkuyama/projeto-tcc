@@ -1,7 +1,7 @@
 """
 Testes de `OnnxMlpAdapter` (RF-10/RNF-24, RNF-64/RNF-65).
 
-Auditoria inicial:87% de cobertura, zero teste dedicado — só
+Auditoria inicial: 87% de cobertura, zero teste dedicado — só
 exercitado indiretamente via `test_model_service_real_artifacts.py`
 (caminho feliz). `_FEATURE_NAMES` (34 entradas) e `_softmax` (staticmethod
 puro) nunca tinham asserção de valor exato.

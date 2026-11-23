@@ -2,7 +2,7 @@
 Testes de `OnnxSequenceAdapter` (RF-10/RNF-24 — TCN/BiLSTM/PatchTST,
 RNF-64/RNF-65).
 
-Auditoria inicial:89% de cobertura, zero teste dedicado — só
+Auditoria inicial: 89% de cobertura, zero teste dedicado — só
 exercitado indiretamente via `test_model_service_real_artifacts.py`
 (caminho feliz, um único artefato por vez). Mesma estrutura de
 `OnnxAutoencoderAdapter` (janela + scaler + softmax) — mesmas classes de

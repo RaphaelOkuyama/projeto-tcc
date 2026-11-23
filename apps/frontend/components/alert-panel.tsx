@@ -18,7 +18,7 @@
  * está desconectado do SensorMonitor desde o commit `de44dc1` ("immersive
  * critical state") — confirmado via `git log -S`/grep, zero imports fora de
  * testes. Mantido e decomposto (não removido) por estar fora do escopo desta
- * tarefa (decomposição, não limpeza de código morto); ver PENDENCIAS.md.
+ * tarefa (decomposição, não limpeza de código morto).
  *
  * RNF-58: decomposto em `components/alert-panel/*` — RiskBadge (+
  * RISK_CONFIG), HistoryRow. Nenhuma mudança de comportamento/DOM (incl.

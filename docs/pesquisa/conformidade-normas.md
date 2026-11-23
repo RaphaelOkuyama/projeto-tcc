@@ -2,7 +2,7 @@
 
 Mapeia os componentes do PredictIQ para três normas de referência. O objetivo
 **não** é declarar certificação (isso exige auditoria formal), e sim mostrar
-à banca **onde** a arquitetura se alinha a cada norma e **onde há lacunas
+**onde** a arquitetura se alinha a cada norma e **onde há lacunas
 conhecidas**. Cada linha aponta o artefato concreto no repositório.
 
 Legenda: ✅ atende · 🟡 atende parcialmente · ❌ lacuna declarada.

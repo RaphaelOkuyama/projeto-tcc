@@ -16,7 +16,7 @@ Três camadas testadas separadamente:
 
 Validação de infraestrutura real (Postgres, não SQLite) e o teste real do
 Telegram (se credenciais existirem) ficam fora deste arquivo — ver README
-"RF-24 — Validação real" e o relatório final.
+"RF-24 — Validação real".
 """
 
 from __future__ import annotations

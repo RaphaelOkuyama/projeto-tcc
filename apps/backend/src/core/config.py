@@ -226,7 +226,7 @@ class Settings(BaseSettings):
     )
 
     # ── Notificações críticas via e-mail (Resend) — RF-25 / RNF-49 ──────────
-    # Antes desta mudança,NENHUMA integração de e-mail
+    # Antes desta mudança, NENHUMA integração de e-mail
     # existia no projeto (nem Resend, nem SMTP, nem qualquer outro provedor)
     # — introduzida aqui pela primeira vez. `None` por padrão — sem API key,
     # EmailNotificationAdapter trata como configuração ausente e nunca tenta
@@ -245,7 +245,7 @@ class Settings(BaseSettings):
     )
 
     # ── Fila assíncrona de notificações — Celery + Redis (RNF-50/RNF-51) ────
-    # Antes desta mudança,nenhum Redis/Celery existia no projeto (o
+    # Antes desta mudança, nenhum Redis/Celery existia no projeto (o
     # rate limiter do RF-24 usa Postgres deliberadamente — ver
     # telegram_alert_rate_limiter.py). Redis aqui serve SÓ como broker do
     # Celery, nunca substitui o Postgres do rate limiter nem nenhum outro
@@ -316,7 +316,7 @@ class Settings(BaseSettings):
 
     # ── Observabilidade — Prometheus (RNF-76 / RNF-77) ──────────────────────
     # URL interna do Prometheus (rede Docker — nunca exposta ao browser, ver
-    # RELATORIO-RNF-76-RNF-77.md §Fase 9). Consumida só por
+    # RNF-76/77). Consumida só por
     # `observability_service.py`, que consulta o PromQL de taxa de erro e
     # devolve um resumo pequeno (status + números) ao frontend — o Prometheus
     # em si nunca é alcançável fora da rede Docker interna.

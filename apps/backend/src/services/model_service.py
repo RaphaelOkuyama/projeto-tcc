@@ -401,8 +401,8 @@ class ModelService:
         """
         Garante que TODAS as colunas esperadas pelo modelo existam, na
         ordem exata do treino (drop extras) — compartilhado por
-        :meth:`predict_from_features` e :meth:`predict_batch` (extraído
-       , RNF-72/73, para não duplicar a lógica de alinhamento
+        :meth:`predict_from_features` e :meth:`predict_batch` (extraído na
+        RNF-72/73 para não duplicar a lógica de alinhamento
         entre o caminho single e o batch).
         """
         X = X.copy()  # never mutate caller's DataFrame

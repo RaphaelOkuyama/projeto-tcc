@@ -2,7 +2,7 @@
 Observability service — RNF-77.
 
 Consulta o Prometheus (rede Docker interna, nunca exposto ao browser — ver
-RELATORIO-RNF-76-RNF-77.md §Fase 9) via sua HTTP API (`/api/v1/query`,
+RNF-76/77) via sua HTTP API (`/api/v1/query`,
 formato nativo do Prometheus) e traduz a taxa de erro 5xx num veredito
 NORMAL/WARNING/CRITICAL para o Dashboard.
 

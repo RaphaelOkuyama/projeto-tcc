@@ -1,7 +1,7 @@
 """
 Testes unitários dos helpers puros de `model_service` (RNF-64/RNF-65).
 
-Auditoria inicial:83% de cobertura, concentrada em três áreas nunca
+Auditoria inicial: 83% de cobertura, concentrada em três áreas nunca
 exercitadas diretamente — `test_model_service_real_artifacts.py` só cobre o
 caminho feliz via artefatos reais:
 

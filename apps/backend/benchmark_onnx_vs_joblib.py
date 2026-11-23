@@ -17,8 +17,8 @@ Achado de auditoria (documentado, não escondido): ``random_forest_v2.onnx``/
 ``xgboost_v2.onnx`` NÃO são modelos diferentes dos `.joblib` — são o MESMO
 modelo treinado, exportado nos dois formatos pela MESMA execução de
 ``train_random_forest.py``/``train_xgboost.py`` (mesmo ``model_card.json``,
-mesmo ``feature_count``/``feature_names``). Não há conversão em runtime
- — os artefatos ONNX já existem, versionados em
+mesmo ``feature_count``/``feature_names``). Não há conversão em runtime:
+os artefatos ONNX já existem, versionados em
 ``apps/ml/models/``.
 
 Achado de auditoria #2 — XGBoost V1 (joblib) foi treinado em ndarray puro,

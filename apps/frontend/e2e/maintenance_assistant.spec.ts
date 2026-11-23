@@ -1,17 +1,11 @@
 /**
  * E2E — Assistente de Manutenção (RF-22/23 / RNF-53 / RNF-54).
  *
- * Convenção de arquivo: o requisito sugere
- * `apps/frontend/tests/maintenance_assistant.spec.ts`, mas o projeto já usa
- * `apps/frontend/e2e/*.spec.ts` (ver `playwright.config.ts::testDir`,
- * `dashboard_flow.spec.ts`, `failure_alert.spec.ts`) — este arquivo segue a
- * convenção REAL já estabelecida, não o caminho sugerido no enunciado.
+ * Convenção de arquivo: o projeto usa `apps/frontend/e2e/*.spec.ts` (ver
+ * `playwright.config.ts::testDir`, `dashboard_flow.spec.ts`,
+ * `failure_alert.spec.ts`).
  *
- * Auditoria (RNF-54): o enunciado menciona provedor externo, mas o projeto NUNCA
- * usou provedor externo — confirmado por busca em todo o repositório (a única
- * menção existente é uma negação explícita no docstring de
- * `ollama_client.py`: "nenhuma chamada a APIs externas de LLM"). A
- * integração de LLM real é o Ollama local (Llama 3.2 3B, RF-22/RNF-46),
+ * Fronteira mockada (RNF-54): a integração de LLM é o Ollama local (Llama 3.2 3B, RF-22/RNF-46),
  * consumida via streaming SSE (`fetch` + `ReadableStream`, não
  * `EventSource` — RF-23/RNF-47). A fronteira mockada por MSW é exatamente
  * essa: `POST /v1/maintenance/suggest/stream` — ver `mocks/handlers.ts`.

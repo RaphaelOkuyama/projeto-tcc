@@ -134,7 +134,7 @@ olhando as falhas de teste, ao contrário do benchmark público.
 * Ressalva: no fold 1 (só 1 falha no treino) os parâmetros a priori são os do
   benchmark, que viu as falhas do MetroPT-3.
 
-**Leitura para a banca:** a complexidade não se pagou com 7 falhas. É o mesmo
+**Leitura:** a complexidade não se pagou com 7 falhas. É o mesmo
 achado do benchmark público, agora sob um protocolo sem graus de liberdade do
 pesquisador.
 

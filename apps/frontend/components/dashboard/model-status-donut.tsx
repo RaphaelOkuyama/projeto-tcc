@@ -5,7 +5,7 @@
  * `next/dynamic` (ver uso em ModelStatusCard.tsx): é a ÚNICA parte do card
  * que depende de `recharts` (~100KB gzip no bundle analisado, o maior
  * contribuinte individual do First Load JS do Dashboard — ver
- * RELATORIO-RNF-74-RNF-75.md). O resto do card (título, badge de
+ * RNF-74/75). O resto do card (título, badge de
  * confiança, legenda) não precisa de recharts e continua estático.
  *
  * Mantém EXATAMENTE o mesmo markup/props que existia inline em
