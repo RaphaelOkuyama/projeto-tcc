@@ -225,7 +225,6 @@ projeto-tcc/
 ├── .github/workflows/ci.yml        # 11 tarefas: auditoria, lint, testes, mutação, E2E, carga
 ├── docker-compose.yml              # 16 serviços
 ├── DOCUMENTACAO_ARQUITETURAL_TCC.md
-├── diretrizes do projeto                       # diretrizes de código do projeto
 └── README.md
 ```
 
@@ -521,7 +520,7 @@ Config real: [`infra/nginx/nginx.conf`](infra/nginx/nginx.conf). Único ponto de
 
 **O que é**: um servidor [MCP](https://modelcontextprotocol.io) (Model Context Protocol) **standalone**, em `apps/mcp-server/`, processo e container Docker próprios — não roda dentro do processo do FastAPI, não compartilha memória/estado com ele. Hoje expõe exatamente **uma** ferramenta, `search_maintenance_manual`, que faz **busca semântica real** (RF-21) sobre os manuais indexados pela pipeline da §4.7 (RF-20).
 
-**Por que é separado**: o propósito de longo prazo (diretrizes do projeto) é o Ollama (LLM local) consultar manuais técnicos via MCP para sugerir reparos — isso é um domínio de responsabilidade diferente do FastAPI (que faz predição/streaming), roda em processo próprio para poder escalar/reiniciar/trocar de implementação (real RAG) independentemente do backend, e para não acoplar as dependências de busca/embeddings ao container da API.
+**Por que é separado**: o propósito de longo prazo é o Ollama (LLM local) consultar manuais técnicos via MCP para sugerir reparos — isso é um domínio de responsabilidade diferente do FastAPI (que faz predição/streaming), roda em processo próprio para poder escalar/reiniciar/trocar de implementação (real RAG) independentemente do backend, e para não acoplar as dependências de busca/embeddings ao container da API.
 
 ```mermaid
 flowchart LR
@@ -685,8 +684,6 @@ Evidência completa (latência de cada uma das 24 queries): [`semantic_search_be
 
 > `avg_results_per_query = 0.75` é esperado, não um bug: o corpus de teste tem só 3 manuais sintéticos e o threshold `> 0.6` é estrito (ver "Por que cosine similarity" acima) — várias das 24 queries do benchmark são só tematicamente relacionadas, não paráfrases próximas de um chunk específico, então ficam abaixo do threshold. O benchmark mede **latência**, não taxa de acerto da busca.
 
-> **Nota de nomenclatura**: diretrizes do projeto descreve esta ferramenta como `search_manuals`; a task RF-19 que criou o stub original especificou explicitamente o nome `search_maintenance_manual`, mantido em RF-21. Sinalizado aqui para quem for alinhar com a documentação conceitual mais antiga.
-
 ### 4.7. Ingestão de manuais — pipeline RAG offline (RF-20 / RNF-44)
 
 **O que é**: `apps/mcp-server/index_manuals.py` — um script batch, independente do transporte MCP, que lê PDFs, extrai texto, gera chunks com overlap, gera embeddings localmente e persiste tudo num vector store local (`vector_store.py` — `sqlite3` + `numpy`). Prepara a base de conhecimento que a ferramenta `search_maintenance_manual` consome de verdade desde a RF-21 (§4.6).
@@ -778,9 +775,9 @@ flowchart TD
 |---|---|
 | Endpoint | `POST /v1/maintenance/suggest` (via Nginx: `POST /api/v1/maintenance/suggest`) |
 | Threshold (RF-22) | Pedido manual: `failure_probability > 0.7` — **estrito**, `MAINTENANCE_SUGGESTION_THRESHOLD` em `maintenance_suggestion_service.py`. Plano automático de um **evento de falha** (RCA): segue a decisão do modelo — `failure_probability ≥ decision_threshold` (limiar do card, gravado no evento); sem isso o pico de um evento de modelo com limiar baixo (≈ 0,3–0,5) nunca recebia plano |
-| Tool MCP usada | `search_maintenance_manual` (nome real confirmado no código — diretrizes do projeto menciona "search_manuals" como nome conceitual) |
+| Tool MCP usada | `search_maintenance_manual` (nome registrado no servidor MCP) |
 | Cliente MCP | `MCPSearchClient` (`apps/backend/src/services/mcp_client.py`) — SDK oficial `mcp` (mesmo pacote do mcp-server), transporte `streamable-http`, `initialize` → `call_tool` |
-| Modelo Ollama | `OLLAMA_MODEL` — default `llama3.2:3b` (Llama 3.2 3B, diretrizes do projeto) |
+| Modelo Ollama | `OLLAMA_MODEL` — default `llama3.2:3b` (Llama 3.2 3B) |
 | Cliente Ollama | `OllamaClient` (`apps/backend/src/services/ollama_client.py`) — HTTP puro via `httpx` (já dependência do backend) contra `POST {OLLAMA_BASE_URL}/api/chat`, `stream: false` |
 | Processamento local (RNF-46) | Nenhuma chamada a APIs externas de LLM — `OLLAMA_BASE_URL` aponta para o Ollama do host (`host.docker.internal`, resolvido nativamente pelo Docker Desktop, **sem** `extra_hosts`) |
 | Vector store | Reaproveitado — **nenhum segundo store criado**. O backend nunca fala com o vector store diretamente, só via MCP (ver "Decisão de arquitetura" abaixo) |

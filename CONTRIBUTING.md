@@ -2,8 +2,7 @@
 
 Guia prático para rodar, testar e modificar o projeto. Todos os comandos
 abaixo foram executados e verificados neste repositório — nenhum é
-hipotético. Para o contexto arquitetural completo, veja o [README](README.md);
-para as diretrizes de estilo de código, veja o diretrizes do projeto.
+hipotético. Para o contexto arquitetural completo, veja o [README](README.md).
 
 ## 1. Setup inicial
 
@@ -125,8 +124,7 @@ revisar o diff formatado.
 ## 5. Fluxo de Git
 
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/)
-  (`feat:`, `fix:`, `perf:`, `docs:`, `chore:`, `test:`) — regra explícita
-  em diretrizes do projeto.
+  (`feat:`, `fix:`, `perf:`, `docs:`, `chore:`, `test:`).
 - **Branches**: nomeie por tipo e escopo (`feat/nome-da-feature`,
   `fix/bug-especifico`, `docs/assunto`, `perf/otimizacao`) — mantém o
   histórico legível quando várias frentes de trabalho coexistem.

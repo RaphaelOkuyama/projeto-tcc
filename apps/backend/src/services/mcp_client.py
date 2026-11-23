@@ -24,9 +24,8 @@ from src.core.exceptions import MCPUnavailableError
 
 log = structlog.get_logger(__name__)
 
-# Nome real da tool, confirmado em apps/mcp-server/server.py (RF-19/RF-21).
-# diretrizes do projeto menciona "search_manuals" como nome conceitual — o
-# nome registrado no servidor real é este; não renomear sem necessidade.
+# Nome da tool registrado em apps/mcp-server/server.py (RF-19/RF-21);
+# não renomear sem alterar o servidor junto.
 SEARCH_TOOL_NAME = "search_maintenance_manual"
 
 

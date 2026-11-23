@@ -235,7 +235,7 @@ React puro é uma biblioteca de UI, não um framework. Utilizá-lo em produção
 
 **Para que serve:** Superset tipado de JavaScript que adiciona verificação estática de tipos em tempo de compilação, eliminando uma classe inteira de erros de runtime relacionados a acesso a propriedades inexistentes, incompatibilidades de tipos e chamadas de função com assinatura errada.
 
-**Como foi implementada:** Todos os payloads de API são tipados com `interface` (ex: `WsAlertFrame`, `SensorReading`). O `tsconfig.json` habilita `strict: true`, proibindo implicitamente `any`. O projeto usa `interface` em preferência a `type` para contratos de objeto, seguindo as diretrizes do diretrizes do projeto.
+**Como foi implementada:** Todos os payloads de API são tipados com `interface` (ex: `WsAlertFrame`, `SensorReading`). O `tsconfig.json` habilita `strict: true`, proibindo implicitamente `any`. O projeto usa `interface` em preferência a `type` para contratos de objeto, seguindo o padrão de código do projeto.
 
 **Por que TypeScript?**
 Em um sistema que consome dois canais assíncronos distintos (SSE para leituras de sensores e WebSocket para alertas), a chance de misturar os payloads ou acessar um campo inexistente é alta. TypeScript torna esses erros detectáveis no editor, antes da execução. Academicamente, o uso de TypeScript é o padrão da indústria para qualquer projeto JavaScript de médio porte desde 2020, tendo ultrapassado JavaScript puro em adoção em projetos open-source. A ausência de TypeScript em um TCC de Engenharia seria comparável a não usar tipagem em Java.
@@ -261,7 +261,7 @@ React possui o maior ecossistema de componentes do mercado frontend (2024: >20M 
 
 **Para que serve:** Framework CSS utility-first que gera exclusivamente as classes utilizadas (PurgeCSS integrado), resultando em bundles CSS mínimos (< 20 KB em produção). Cada propriedade CSS tem uma classe correspondente, eliminando a necessidade de nomenclatura BEM ou CSS Modules.
 
-**Como foi implementada:** O tema customizado é definido em `app/globals.css` via variáveis CSS (`--foreground`, `--background`, `--primary`, etc.), e Tailwind as referencia via `hsl(var(--primary))`. Esta arquitetura é mandatória pelo diretrizes do projeto — é proibido usar cores hard-coded (`bg-black`) para garantir consistência temática global.
+**Como foi implementada:** O tema customizado é definido em `app/globals.css` via variáveis CSS (`--foreground`, `--background`, `--primary`, etc.), e Tailwind as referencia via `hsl(var(--primary))`. Esta arquitetura é um padrão do projeto — é proibido usar cores hard-coded (`bg-black`) para garantir consistência temática global.
 
 **Por que Tailwind e não CSS puro/Styled Components?**
 CSS puro em projetos complexos evolui para especificidade crescente e conflitos de seletores difíceis de depurar. Styled Components e CSS-in-JS introduzem overhead de runtime e complicam SSR. O Tailwind resolve esses problemas: é puramente buildtime (zero runtime), integra perfeitamente com Next.js, e sua abordagem utility-first é hoje o padrão de fato em projetos Next.js industriais (adotado por Vercel, GitHub Copilot UI, Linear, Vercel Dashboard).
@@ -274,7 +274,7 @@ CSS puro em projetos complexos evolui para especificidade crescente e conflitos 
 
 **Para que serve:** Coleção de componentes acessíveis (compatíveis com WCAG 2.1) construídos sobre Radix UI (comportamento headless) e Tailwind (estilização). Os componentes são **copiados para o repositório** (não importados de um pacote), permitindo customização total sem conflitos de versão.
 
-**Como foi implementada:** Cada componente ocupa um arquivo dedicado (`components/ui/badge.tsx`, `components/ui/button.tsx`, etc.), seguindo o padrão do diretrizes do projeto de "um componente por arquivo". O `Skeleton` é utilizado nos estados de loading, o `EmptyState` e `ErrorState` nos casos de falha, garantindo que o sistema nunca exiba telas em branco.
+**Como foi implementada:** Cada componente ocupa um arquivo dedicado (`components/ui/badge.tsx`, `components/ui/button.tsx`, etc.), seguindo o padrão do projeto de "um componente por arquivo". O `Skeleton` é utilizado nos estados de loading, o `EmptyState` e `ErrorState` nos casos de falha, garantindo que o sistema nunca exiba telas em branco.
 
 **Por que Shadcn/ui e não Material UI ou Ant Design?**
 Material UI e Ant Design importam o design inteiro como dependência (~300 KB minificados), forçando o projeto a adotar a linguagem visual da Google/Alibaba. O Shadcn/ui entrega apenas os componentes utilizados no código-fonte do projeto, sem overhead, e sem vínculo com uma linguagem visual corporativa externa. Para um dashboard industrial que precisa de identidade visual própria (cockpit, tema escuro, indicadores de criticidade), a flexibilidade do Shadcn/ui é superior.

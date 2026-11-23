@@ -61,7 +61,7 @@ class Settings(BaseSettings):
         alias="OLLAMA_BASE_URL",
     )
     # Modelo usado por MaintenanceSuggestionService (src/services/ollama_client.py).
-    # Default = Llama 3.2 3B (diretrizes do projeto) — configurável sem redeploy.
+    # Default = Llama 3.2 3B — configurável sem redeploy.
     ollama_model: str = Field(
         default="llama3.2:3b",
         alias="OLLAMA_MODEL",

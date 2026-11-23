@@ -105,7 +105,7 @@ exclude_lines = [
 # sobrevivente — decisão tomada ANTES de qualquer execução do mutmut):
 #   - `src/routers/*`, `src/tasks/*`, `src/models/*` (ORM), `src/schemas/*`
 #     (DTOs sem validador custom) — são "apenas I/O", pela própria regra
-#     de Clean Architecture do projeto (diretrizes do projeto) e pelo contrato do
+#     de Clean Architecture do projeto e pelo contrato do
 #     import-linter (RNF-56): não deveriam conter regra de negócio: se um
 #     mutante aqui sobrevivesse, o achado real seria "regra de negócio
 #     vazou pro router", não "teste fraco".

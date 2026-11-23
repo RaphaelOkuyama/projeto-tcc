@@ -198,7 +198,7 @@ _null_cache = _NullInferenceCache()
 async def get_inference_cache(request: Request) -> InferenceCache | _NullInferenceCache:
     """
     Resolve o InferenceCache do `app.state` (criado uma vez no lifespan —
-    mesmo padrão de ModelRegistry, diretrizes do projeto "singleton no lifespan").
+    mesmo padrão "singleton no lifespan" do ModelRegistry).
 
     Sem lifespan (app.state.inference_cache ausente), devolve o sentinel
     `_NullInferenceCache` — MISS sempre, sem nenhuma tentativa de rede (ver

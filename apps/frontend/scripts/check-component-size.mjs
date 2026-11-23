@@ -90,7 +90,7 @@ if (violations.length > 0) {
     console.error(`  ${lines.toString().padStart(4)} linhas  ${relPath}`);
   }
   console.error(
-    "\nDecomponha os arquivos acima (extraia sub-componentes/hooks/helpers) — ver diretrizes do projeto.",
+    "\nDecomponha os arquivos acima (extraia sub-componentes/hooks/helpers).",
   );
   process.exit(1);
 }

@@ -1,7 +1,7 @@
 /**
  * Formatação de datas e números da UI — fonte única.
  *
- * Datas: EXCLUSIVO `dayjs` (diretrizes do projeto), sempre no fuso do navegador do
+ * Datas: EXCLUSIVO `dayjs`, sempre no fuso do navegador do
  * operador. A API envia instantes em UTC (`…Z`); mostrar em UTC fazia o
  * histórico e o feed ficarem 3 h à frente das demais telas no Brasil.
  */

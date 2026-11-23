@@ -5,7 +5,7 @@ Responsibilities:
 - Expose GET /health for liveness/readiness probes.
 - Delegate DB connectivity check to the health service via Depends.
 
-No business logic lives here (Clean Arch rule from diretrizes do projeto).
+No business logic lives here (Clean Architecture rule).
 """
 
 from __future__ import annotations

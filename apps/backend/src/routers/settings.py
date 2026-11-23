@@ -10,8 +10,8 @@ nenhum mecanismo de autenticação novo (o projeto não possui sistema de
 usuários; a configuração é global para o sistema, não por usuário — ver
 `models/alert_settings.py`).
 
-Zero regra de negócio aqui — apenas I/O e injeção, conforme Clean Arch
-(diretrizes do projeto): toda a lógica vive em `AlertSettingsService` e
+Zero regra de negócio aqui — apenas I/O e injeção, conforme Clean Arch:
+toda a lógica vive em `AlertSettingsService` e
 `NotificationTestService`.
 """
 

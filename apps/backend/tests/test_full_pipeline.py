@@ -189,8 +189,8 @@ def fake_mcp_client(
 
     `AsyncMock` (não uma classe própria) — mesmo padrão já estabelecido em
     `test_maintenance_suggestion.py` (RF-22): `MaintenanceSuggestionService`
-    é tipado estritamente contra `MCPSearchClient`/`OllamaClient` (diretrizes do projeto
-    §2 — proibido enfraquecer tipos), e `AsyncMock` satisfaz mypy por
+    é tipado estritamente contra `MCPSearchClient`/`OllamaClient` (tipagem
+    estrita, sem enfraquecer tipos), e `AsyncMock` satisfaz mypy por
     duck-typing onde uma classe fake própria não satisfaria uma checagem
     nominal estrita.
     """
